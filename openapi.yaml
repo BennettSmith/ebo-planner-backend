@@ -1101,6 +1101,10 @@ components:
           nullable: true
           pattern: '.*\\S.*'
           description: Display name. Server trims leading/trailing whitespace and collapses internal whitespace runs before persisting.
+        email:
+          type: string
+          format: email
+          description: Member email address. Cannot be cleared. Must be unique across members.
         groupAliasEmail:
           type: string
           format: email

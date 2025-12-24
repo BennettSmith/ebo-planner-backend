@@ -28,6 +28,7 @@ Update profile metadata including group alias and vehicle profile.
 5. System validates and applies only provided fields:
 
    - If `displayName` is provided: trim leading/trailing whitespace, collapse internal whitespace runs, and require non-empty after normalization.
+   - If `email` is provided: validate email format and update the member’s email address. Email cannot be cleared.
    - If `groupAliasEmail` is provided: validate email format; `null` clears it.
    - If `vehicleProfile` is provided:
      - An object value applies as a partial update (only provided subfields are updated).
@@ -73,6 +74,7 @@ A2 — Idempotency Key Reuse With Different Payload
 - Profile is owned by the member (member can only update their own profile).
 - Vehicle capability fields are informational only (not used for enforcement).
 - `displayName` must be non-empty after normalization.
+- `email` must be a valid email address and must be unique across members.
 
 ---
 
