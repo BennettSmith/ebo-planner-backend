@@ -8,7 +8,7 @@ View lists of attending and not-attending members for a trip.
 
 ## Preconditions
 - Caller is authenticated.
-- Target resource exists and is visible/accessible to the caller.
+- Target trip exists and is visible/accessible to the caller.
 
 ## Postconditions
 - Trip/member data is returned. No state is modified.
@@ -16,12 +16,22 @@ View lists of attending and not-attending members for a trip.
 ---
 
 ## Main Success Flow
-1. Actor invokes the use case with the required identifiers and inputs.
+1. Actor requests the RSVP summary for a given `tripId`.
 2. System authenticates the caller.
-3. System authorizes the caller for the target resource (trip/member).
-4. System loads the required aggregate(s) and validates inputs.
-5. System executes the primary behavior.
-6. System returns the result.
+3. System loads the trip by `tripId`.
+4. System authorizes access:
+   - Trip must be visible to the caller; if not, return `404 Not Found` (do not reveal existence).
+5. System verifies the trip is `PUBLISHED` or `CANCELED`. If the trip is a draft, reject with `409 Conflict`.
+6. System loads RSVP data and builds an RSVP summary:
+   - `attendingMembers`: members with RSVP response `YES`
+   - `notAttendingMembers`: members with RSVP response `NO`
+   - `attendingRigs`: count of `YES` RSVPs
+   - `capacityRigs`: trip capacity (may be null for trips that were canceled from draft)
+   - RSVP response `UNSET` is omitted from the summary.
+7. System orders results:
+   - Grouped by attending vs not attending
+   - Within each group, members sorted alphabetically by display name
+8. System returns the RSVP summary.
 
 ---
 
@@ -32,19 +42,20 @@ View lists of attending and not-attending members for a trip.
 
 ## Error Conditions
 - `401 Unauthorized` — caller is not authenticated
-- `403 Forbidden` — caller lacks permission for this operation
-- `404 Not Found` — target resource does not exist
+- `404 Not Found` — trip does not exist OR is not visible to the caller
+- `409 Conflict` — RSVP summary is not available (e.g., trip is a draft)
 - `500 Internal Server Error` — unexpected failure
 
 ---
 
 ## Authorization Rules
 - Caller must be an authenticated member.
-- Any authenticated member may access this data (subject to trip draft visibility for drafts).
+- Trip must be visible to the caller; if not, return `404 Not Found` (do not reveal existence).
+- RSVP summary is available only for `PUBLISHED` and `CANCELED` trips.
 ---
 
 ## Output
-- Success DTO or confirmation response (depending on operation)
+- Success DTO containing `TripRSVPSummary`.
 
 ---
 
