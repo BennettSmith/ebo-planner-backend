@@ -57,7 +57,8 @@ make up AUTH_MODE=jwt
 Mint a token (from host) and call the API:
 
 ```bash
-TOKEN="$(curl -sS 'http://localhost:5556/token?sub=dev%7Calice' | sed -n 's/.*\"token\":\"\\([^\"]*\\)\".*/\\1/p')"
+# Requires jq (brew install jq)
+TOKEN="$(curl -sS 'http://localhost:5556/token?sub=dev%7Calice' | jq -r .token)"
 curl -sS http://localhost:8081/members -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -142,7 +143,7 @@ TOKEN="$(
     --data-urlencode 'client_id=ebo-api' \
     --data-urlencode 'username=alice' \
     --data-urlencode 'password=alice' \
-  | sed -n 's/.*\"access_token\":\"\\([^\"]*\\)\".*/\\1/p'
+  | jq -r .access_token
 )"
 curl -sS http://localhost:8081/members -H "Authorization: Bearer $TOKEN"
 ```
