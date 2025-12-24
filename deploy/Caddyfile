@@ -1,0 +1,13 @@
+:80 {
+	encode gzip
+
+	# Proxy to the API container.
+	reverse_proxy api:8080 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+		header_up X-Forwarded-For {remote_host}
+	}
+
+	# Optional proxy-level health endpoint
+	respond /proxy-healthz 200
+}

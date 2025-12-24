@@ -7,7 +7,7 @@
 # Usage:
 #   make up            # start postgres
 #   make db-create     # create database (if not already created)
-#   make db-migrate    # apply DDL (schema)
+#   make db-migrate    # apply migrations (schema)
 #   make db-seed       # seed sample data
 #   make db-reset      # drop/recreate/apply/seed (destructive)
 #
@@ -23,13 +23,13 @@ POSTGRES_DB ?= ebo_dev
 POSTGRES_PORT ?= 5432
 
 COMPOSE ?= docker compose
-SERVICE ?= postgres
+DB_SERVICE ?= db
 
 # Connection string for local host access (psql on host)
 DATABASE_URL ?= postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
 
-# Path to the DDL folder (expects the DDL zip extracted next to this Makefile, or override)
-DDL_DIR ?= ./ddl
+# Dev-only seed script (must NOT be included in migrations)
+SEED_FILE ?= ./db/seed/seed_dev_optional.sql
 
 PSQL ?= psql
 PSQL_FLAGS ?= -v ON_ERROR_STOP=1
@@ -43,16 +43,16 @@ help:
 	@echo "  psql           Open interactive psql shell (inside container)"
 	@echo "  db-create      Create database (if missing)"
 	@echo "  db-drop        Drop database (destructive)"
-	@echo "  db-migrate     Apply schema DDL (00..05)"
-	@echo "  db-seed        Apply dev seed (06)"
+	@echo "  db-migrate     Apply schema migrations (golang-migrate)"
+	@echo "  db-seed        Apply dev seed (optional)"
 	@echo "  db-reset       Drop + create + migrate + seed (destructive)"
 	@echo ""
 	@echo "Vars (override like: make up POSTGRES_PORT=5433):"
-	@echo "  POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_PORT DDL_DIR DATABASE_URL"
+	@echo "  POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_PORT SEED_FILE DATABASE_URL"
 
 .PHONY: up
 up:
-	$(COMPOSE) up -d
+	$(COMPOSE) up -d --build
 
 .PHONY: down
 down:
@@ -60,17 +60,21 @@ down:
 
 .PHONY: logs
 logs:
-	$(COMPOSE) logs -f $(SERVICE)
+	$(COMPOSE) logs -f $(DB_SERVICE)
+
+.PHONY: migrate
+migrate:
+	$(COMPOSE) run --rm migrate
 
 .PHONY: psql
 psql:
-	$(COMPOSE) exec -it $(SERVICE) psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
+	$(COMPOSE) exec -it $(DB_SERVICE) psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
 
 # --- Database lifecycle helpers (run via container to avoid host tooling dependencies) ---
 
 .PHONY: db-create
 db-create: up
-	@$(COMPOSE) exec -T $(SERVICE) bash -lc '\
+	@$(COMPOSE) exec -T $(DB_SERVICE) bash -lc '\
 		psql -v ON_ERROR_STOP=1 -U "$(POSTGRES_USER)" -d postgres \
 			-c "SELECT 1 FROM pg_database WHERE datname = '"'"'$(POSTGRES_DB)'"'"';" | grep -q 1 \
 		|| psql -v ON_ERROR_STOP=1 -U "$(POSTGRES_USER)" -d postgres \
@@ -79,7 +83,7 @@ db-create: up
 
 .PHONY: db-drop
 db-drop: up
-	@$(COMPOSE) exec -T $(SERVICE) bash -lc '\
+	@$(COMPOSE) exec -T $(DB_SERVICE) bash -lc '\
 		psql -v ON_ERROR_STOP=1 -U "$(POSTGRES_USER)" -d postgres \
 			-c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '"'"'$(POSTGRES_DB)'"'"' AND pid <> pg_backend_pid();" \
 		&& psql -v ON_ERROR_STOP=1 -U "$(POSTGRES_USER)" -d postgres \
@@ -88,23 +92,16 @@ db-drop: up
 
 .PHONY: db-migrate
 db-migrate: db-create
-	@test -d "$(DDL_DIR)" || (echo "DDL_DIR not found: $(DDL_DIR). Put DDL files in ./ddl or set DDL_DIR."; exit 1)
-	@$(COMPOSE) exec -T $(SERVICE) bash -lc '\
-		psql $(PSQL_FLAGS) -U "$(POSTGRES_USER)" -d "$(POSTGRES_DB)" -f /ddl/00_extensions.sql && \
-		psql $(PSQL_FLAGS) -U "$(POSTGRES_USER)" -d "$(POSTGRES_DB)" -f /ddl/01_enums.sql && \
-		psql $(PSQL_FLAGS) -U "$(POSTGRES_USER)" -d "$(POSTGRES_DB)" -f /ddl/02_tables.sql && \
-		psql $(PSQL_FLAGS) -U "$(POSTGRES_USER)" -d "$(POSTGRES_DB)" -f /ddl/03_indexes.sql && \
-		psql $(PSQL_FLAGS) -U "$(POSTGRES_USER)" -d "$(POSTGRES_DB)" -f /ddl/04_triggers.sql && \
-		psql $(PSQL_FLAGS) -U "$(POSTGRES_USER)" -d "$(POSTGRES_DB)" -f /ddl/05_views.sql \
-	'
+	@$(COMPOSE) run --rm migrate
 
 .PHONY: db-seed
 db-seed: db-migrate
-	@test -d "$(DDL_DIR)" || (echo "DDL_DIR not found: $(DDL_DIR)."; exit 1)
-	@$(COMPOSE) exec -T $(SERVICE) bash -lc '\
-		psql $(PSQL_FLAGS) -U "$(POSTGRES_USER)" -d "$(POSTGRES_DB)" -f /ddl/06_seed_dev_optional.sql \
-	'
+	@test -f "$(SEED_FILE)" || (echo "SEED_FILE not found: $(SEED_FILE)."; exit 1)
+	@$(COMPOSE) exec -T $(DB_SERVICE) bash -lc '\
+		psql $(PSQL_FLAGS) -U "$(POSTGRES_USER)" -d "$(POSTGRES_DB)" \
+	' < "$(SEED_FILE)"
 
 .PHONY: db-reset
 db-reset: db-drop db-create db-migrate db-seed
 	@echo "Reset complete: $(POSTGRES_DB) on localhost:$(POSTGRES_PORT)"
+

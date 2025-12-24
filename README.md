@@ -1,37 +1,58 @@
-# East Bay Overland — Local Postgres Dev Setup
+# East Bay Overland — Local Dev
 
-This folder provides a **Docker Compose** Postgres instance and a **Makefile** with common tasks
-(create/migrate/seed/reset).
+This repo uses:
 
-## Quick start
+- **Postgres via Docker Compose** (`db` service)
+- **golang-migrate** via the `migrate/migrate` image (`migrate` service)
+- A Go API (`api` service) behind Caddy locally (`caddy` service)
 
-1. Start Postgres
+### Local dev (DB + API)
 
-   ```bash
-   make up
-   ```
+Bring up the database and API (and the local proxy):
 
-2. Create + apply schema + seed sample data
+```bash
+docker compose up -d --build db api caddy
+```
 
-   ```bash
-   make db-reset
-   ```
+Database connection string (from host):
 
-3. Connect
+```bash
+postgres://eb:eb@localhost:5432/eastbay?sslmode=disable
+```
 
-   - Inside container:
+### Run migrations
 
-     ```bash
-     make psql
-     ```
+Apply migrations (defaults to `up`):
 
-   - From host (if you have `psql` installed):
+```bash
+docker compose run --rm migrate
+```
 
-     ```bash
-     psql "postgres://ebo:ebo_password@localhost:5432/ebo_dev?sslmode=disable"
-     ```
+Reset schema (destructive):
 
-## Notes
+```bash
+docker compose run --rm migrate down -all
+docker compose run --rm migrate
+```
 
-- The Makefile runs all `psql` commands **inside the container** to reduce host dependencies.
-- DDL files are mounted read-only at `/ddl`.
+### Optional: dev seed (NOT part of migrations)
+
+Seed data lives in `db/seed/seed_dev_optional.sql` and is intentionally **not** included in `migrations/`.
+
+If you want sample data in a local dev database, you can run it against the running container:
+
+```bash
+docker compose exec -T db psql -U eb -d eastbay -v ON_ERROR_STOP=1 < db/seed/seed_dev_optional.sql
+```
+
+Or, run it from your host with `DATABASE_URL`:
+
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/seed/seed_dev_optional.sql
+```
+
+Example host DB URL (when using Docker Compose locally):
+
+```bash
+postgres://eb:eb@localhost:5432/eastbay?sslmode=disable
+```
