@@ -35,7 +35,7 @@ erDiagram
   TRIPS {
     bigint id PK
     uuid external_id "unique"
-    bigint created_by_member_id FK
+    bigint created_by_member_id FK "not null"
     text name
     text description
     date start_date
@@ -46,8 +46,8 @@ erDiagram
     text difficulty_text
     text meeting_location_label
     text meeting_location_address
-    float meeting_location_latitude
-    float meeting_location_longitude
+    double meeting_location_latitude
+    double meeting_location_longitude
     text comms_requirements_text
     text recommended_requirements_text
     timestamptz published_at

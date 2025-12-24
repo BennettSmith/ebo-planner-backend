@@ -1,6 +1,6 @@
 # Domain Model (v1) — Mermaid
 
-Source of truth: `docs/Overland Trip Planning – v1 Domain Model & Use Case Catalog.md`
+Source of truth: `docs/use-cases/*.md` + `openapi.yaml` (DTO shapes) + `migrations/*.sql` (persistence constraints).
 
 ```mermaid
 classDiagram
@@ -8,6 +8,7 @@ direction LR
 
 class Trip {
   +TripId (external_id)
+  +createdByMemberId (created_by_member_id)
   +name
   +description
   +startDate
@@ -57,8 +58,12 @@ class TripArtifact {
 class Location {
   +label
   +address?
-  +latitude?
-  +longitude?
+  +latitudeLongitude? : LatitudeLongitude
+}
+
+class LatitudeLongitude {
+  +latitude
+  +longitude
 }
 
 class TripOrganizer {
@@ -71,6 +76,7 @@ Trip "1" o-- "*" TripArtifact : artifacts
 Trip "1" o-- "*" RSVP : rsvps
 Member "1" o-- "0..1" VehicleProfile : vehicleProfile
 
+Member "1" --> "*" Trip : creates
 Trip "1" o-- "*" TripOrganizer : organizers
 Member "1" o-- "*" TripOrganizer : organizes
 ```
@@ -79,6 +85,8 @@ Member "1" o-- "*" TripOrganizer : organizes
 
 - **Trip lifecycle**: `DRAFT -> PUBLISHED -> CANCELED` (publish only allowed from `DRAFT`).
 - **Draft visibility**: only meaningful when `status = DRAFT`.
+  - `PRIVATE`: visible only to the **creator**.
+  - `PUBLIC`: visible only to **organizers**.
 - **RSVP rules**:
   - Allowed only when `status = PUBLISHED`.
   - `YES` consumes exactly one “rig slot”; `NO`/`UNSET` do not.

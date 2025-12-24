@@ -37,8 +37,8 @@ A Trip represents a coordinated plan for an overlanding trip.
 
 ##### Draft Visibility
 (Only relevant when `status = DRAFT`)
-- `PRIVATE` – visible only to organizers
-- `PUBLIC` – visible to all members (no RSVP)
+- `PRIVATE` – visible only to the **creator** (initial organizer)
+- `PUBLIC` – visible only to **organizers** (no RSVP)
 
 ##### Required at Publish Time
 A trip **may be incomplete** while in draft. The following fields are required **only when publishing**:
@@ -56,6 +56,7 @@ A trip **may be incomplete** while in draft. The following fields are required *
 
 ##### Fields (v1)
 - `TripId`
+- `createdByMemberId` (immutable; creator is the initial organizer)
 - `name`
 - `description`
 - `startDate`
@@ -73,7 +74,10 @@ A trip **may be incomplete** while in draft. The following fields are required *
 ##### Invariants
 - RSVP is only allowed when `status = PUBLISHED`
 - Capacity is enforced strictly on RSVP = YES
-- Organizers may edit any field at any time
+- **Draft authorization**:
+  - `draftVisibility = PRIVATE`: only the **creator** may edit.
+  - `draftVisibility = PUBLIC`: only **organizers** may edit.
+- **Published authorization**: only **organizers** may edit.
 - A trip may be canceled at any time by an organizer
 - At least one organizer must always exist
 
