@@ -15,11 +15,15 @@
       "enabled": true,
       "publicClient": true,
       "directAccessGrantsEnabled": true,
-      "standardFlowEnabled": false,
+      "standardFlowEnabled": true,
       "serviceAccountsEnabled": false,
       "protocol": "openid-connect",
-      "redirectUris": [],
-      "webOrigins": [],
+      "redirectUris": [
+        "https://oauth.pstmn.io/v1/callback"
+      ],
+      "webOrigins": [
+        "https://oauth.pstmn.io"
+      ],
       "attributes": {
         "post.logout.redirect.uris": "+"
       },

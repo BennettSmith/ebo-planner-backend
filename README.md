@@ -79,7 +79,7 @@ You can run Keycloak locally via docker compose (recommended) or run it elsewher
 
 This repo includes a `keycloak` compose service (disabled by default) and a small realm import:
 - Realm: `ebo`
-- Client: `ebo-api` (direct access grants enabled)
+- Client: `ebo-api` (direct access grants enabled; auth code flow enabled for Postman)
 - User: `alice` / password: `alice`
 
 Start the stack with Keycloak + JWT auth:
@@ -115,6 +115,32 @@ If Keycloak is still starting, tail logs:
 ```bash
 make logs-keycloak
 ```
+
+##### Use Keycloak from Postman (recommended dev UX)
+
+If you want the "Get New Access Token → browser login → token auto-attaches" experience in Postman, use **Authorization Code (With PKCE)**.
+
+Keycloak client requirements:
+- Standard Flow must be enabled
+- Valid redirect URI must include Postman's callback: `https://oauth.pstmn.io/v1/callback`
+
+Postman settings (OAuth 2.0):
+- **Grant Type**: Authorization Code (With PKCE)
+- **Callback URL**: `https://oauth.pstmn.io/v1/callback`
+- **Auth URL**: `http://localhost:8082/realms/ebo/protocol/openid-connect/auth`
+- **Access Token URL**: `http://localhost:8082/realms/ebo/protocol/openid-connect/token`
+- **Client ID**: `ebo-api`
+- **Client Secret**: (leave blank; this is a public client)
+- **Scope**: `openid`
+- **PKCE**: on (S256)
+
+Then sign in as `alice` / `alice`, and use the resulting access token as `Authorization: Bearer <token>` when calling the API.
+
+When you may need to update API JWT config (`JWT_ISSUER`, `JWT_AUDIENCE`, `JWT_JWKS_URL`):
+- If you change **realm name** or **Keycloak base URL** (host/port/proxy): tokens will have a different `iss` → update `JWT_ISSUER` to match exactly.
+- If you change **client ID** / **audience mapper** / **client scopes**: tokens may have a different `aud` → update `JWT_AUDIENCE`.
+- If you run the API **inside Docker** vs **on your host** (or move Keycloak): `JWT_JWKS_URL` must be reachable from where the API runs (often `host.docker.internal` instead of `localhost`).
+- If you change **token signing algorithm/keys**: the API currently requires **RS256** and a JWT header `kid`, and it fetches keys from JWKS.
 
 ##### Point the API at an existing Keycloak
 
