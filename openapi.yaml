@@ -170,7 +170,7 @@ paths:
       operationId: setTripDraftVisibility
       parameters:
       - $ref: '#/components/parameters/TripId'
-      - $ref: '#/components/parameters/IdempotencyKey'
+      - $ref: '#/components/parameters/RequiredIdempotencyKey'
       requestBody:
         required: true
         content:
@@ -186,8 +186,6 @@ paths:
                 $ref: '#/components/schemas/TripResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':

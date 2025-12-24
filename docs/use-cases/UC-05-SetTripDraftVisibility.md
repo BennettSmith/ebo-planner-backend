@@ -28,14 +28,27 @@ Toggle a draft between private and public visibility.
 ---
 
 ## Alternate Flows
-- None.
+A1 — Idempotent No-op (Requested Visibility Already Set)
+- **Condition:** Trip `draftVisibility` is already equal to the requested value.
+- **Behavior:** System performs no state change.
+- **Outcome:** `200 OK` with unchanged trip returned.
+
+A2 — Idempotent Retry (Same Idempotency Key, Same Request)
+- **Condition:** A previous successful visibility change exists for the same actor and idempotency key with an identical request payload.
+- **Behavior:** System returns the previously returned response (no additional state change).
+- **Outcome:** `200 OK` (idempotent).
+
+A3 — Idempotency Key Reuse With Different Payload
+- **Condition:** A previous request exists for the same actor and idempotency key, but the new request payload differs.
+- **Behavior:** System rejects the request.
+- **Outcome:** `409 Conflict`.
 
 ---
 
 ## Error Conditions
 - `401 Unauthorized` — caller is not authenticated
 - `404 Not Found` — trip does not exist OR is not visible to the caller
-- `409 Conflict` — domain invariant violated
+- `409 Conflict` — idempotency key reuse with a different payload (or other invariant violation)
 - `422 Unprocessable Entity` — invalid input values (format/range)
 - `500 Internal Server Error` — unexpected failure
 
@@ -61,7 +74,7 @@ Toggle a draft between private and public visibility.
 ## API Notes
 - Suggested endpoint: `PUT /trips/{tripId}/draft-visibility`
 - Prefer returning a stable DTO shape; avoid leaking internal persistence fields.
-- Mutating: consider idempotency keys where duplicate submissions are plausible.
+- Mutating: **require** an `Idempotency-Key` header to safely handle retries.
 
 ---
 
