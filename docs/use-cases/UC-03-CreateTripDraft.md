@@ -62,7 +62,10 @@ A2 — Idempotency Key Reuse With Different Payload
 ---
 
 ## Output
-- Success DTO containing the created trip (at minimum the new `tripId`).
+- Success DTO containing the created trip identifier and initial state (slim “created” DTO), e.g.:
+  - `tripId`
+  - `status = DRAFT`
+  - `draftVisibility = PRIVATE`
 
 ---
 

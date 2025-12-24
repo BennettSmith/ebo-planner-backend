@@ -936,9 +936,24 @@ components:
       additionalProperties: false
       properties:
         trip:
-          $ref: '#/components/schemas/TripDetails'
+          $ref: '#/components/schemas/TripCreated'
       required:
       - trip
+    TripCreated:
+      type: object
+      additionalProperties: false
+      description: Minimal response returned when a draft trip is created.
+      properties:
+        tripId:
+          type: string
+        status:
+          $ref: '#/components/schemas/TripStatus'
+        draftVisibility:
+          $ref: '#/components/schemas/DraftVisibility'
+      required:
+      - tripId
+      - status
+      - draftVisibility
     UpdateTripRequest:
       type: object
       additionalProperties: false
