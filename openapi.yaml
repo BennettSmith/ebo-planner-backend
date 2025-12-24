@@ -496,7 +496,7 @@ paths:
       summary: Update my member profile
       operationId: updateMyMemberProfile
       parameters:
-      - $ref: '#/components/parameters/IdempotencyKey'
+      - $ref: '#/components/parameters/RequiredIdempotencyKey'
       requestBody:
         required: true
         content:
@@ -512,10 +512,19 @@ paths:
                 $ref: '#/components/schemas/UpdateMyMemberProfileResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: No provisioned member exists for the authenticated subject
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                MemberNotProvisioned:
+                  summary: Member not provisioned
+                  value:
+                    error:
+                      code: MEMBER_NOT_PROVISIONED
+                      message: No member profile exists for the authenticated subject.
         '409':
           $ref: '#/components/responses/Conflict'
         '422':
@@ -542,8 +551,6 @@ paths:
                 - member
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           description: No provisioned member exists for the authenticated subject
           content:
@@ -1092,6 +1099,8 @@ components:
         displayName:
           type: string
           nullable: true
+          pattern: '.*\\S.*'
+          description: Display name. Server trims leading/trailing whitespace and collapses internal whitespace runs before persisting.
         groupAliasEmail:
           type: string
           format: email
