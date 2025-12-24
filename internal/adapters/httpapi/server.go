@@ -359,6 +359,616 @@ func (s *Server) GetTripDetails(ctx context.Context, req oas.GetTripDetailsReque
 	return oas.GetTripDetails200JSONResponse{Trip: tripDetailsFromDomain(td)}, nil
 }
 
+func (s *Server) CreateTripDraft(ctx context.Context, req oas.CreateTripDraftRequestObject) (oas.CreateTripDraftResponseObject, error) {
+	sub, ok := SubjectFromContext(ctx)
+	if !ok {
+		return oas.CreateTripDraft401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "UNAUTHORIZED", "missing subject", nil))}, nil
+	}
+	me, err := s.Members.GetMyMemberProfile(ctx, domain.SubjectID(sub))
+	if err != nil {
+		if isMemberNotProvisioned(err) {
+			return oas.CreateTripDraft401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "MEMBER_NOT_PROVISIONED", "No member profile exists for the authenticated subject.", nil))}, nil
+		}
+		return nil, err
+	}
+	if req.Body == nil {
+		return oas.CreateTripDraft422JSONResponse{UnprocessableEntityJSONResponse: oas.UnprocessableEntityJSONResponse(oasError(ctx, "VALIDATION_ERROR", "missing request body", nil))}, nil
+	}
+
+	// Idempotency handling (v1):
+	// - Replay if same actor+key+route+bodyHash
+	// - Reject if same actor+key+route with different bodyHash (409)
+	bodyHash, err := hashCreateTripDraftBody(*req.Body)
+	if err != nil {
+		return nil, err
+	}
+	metaFP := idempotency.Fingerprint{
+		Key:      idempotency.Key(req.Params.IdempotencyKey),
+		Subject:  domain.SubjectID(sub),
+		Method:   http.MethodPost,
+		Route:    "/trips",
+		BodyHash: "",
+	}
+	if s.Idem != nil {
+		if meta, ok, err := s.Idem.Get(ctx, metaFP); err != nil {
+			return nil, err
+		} else if ok {
+			if string(meta.Body) != bodyHash {
+				return oas.CreateTripDraft409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, "IDEMPOTENCY_KEY_REUSE", "idempotency key reuse with different payload", nil))}, nil
+			}
+		} else {
+			_ = s.Idem.Put(ctx, metaFP, idempotency.Record{
+				StatusCode:  0,
+				ContentType: "text/plain",
+				Body:        []byte(bodyHash),
+				CreatedAt:   time.Now().UTC(),
+			})
+		}
+
+		respFP := metaFP
+		respFP.BodyHash = bodyHash
+		if rec, ok, err := s.Idem.Get(ctx, respFP); err != nil {
+			return nil, err
+		} else if ok && rec.StatusCode == http.StatusCreated && strings.HasPrefix(rec.ContentType, "application/json") {
+			var payload oas.CreateTripDraftResponse
+			if err := json.Unmarshal(rec.Body, &payload); err == nil {
+				return oas.CreateTripDraft201JSONResponse(payload), nil
+			}
+		}
+	}
+
+	created, err := s.Trips.CreateTripDraft(ctx, me.ID, trips.CreateTripDraftInput{Name: req.Body.Name})
+	if err != nil {
+		if ae := (*trips.Error)(nil); errors.As(err, &ae) {
+			switch ae.Status {
+			case http.StatusConflict:
+				return oas.CreateTripDraft409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusUnprocessableEntity:
+				return oas.CreateTripDraft422JSONResponse{UnprocessableEntityJSONResponse: oas.UnprocessableEntityJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusNotFound:
+				// Should not happen for create; map to conflict.
+				return oas.CreateTripDraft409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			default:
+				return nil, err
+			}
+		}
+		return nil, err
+	}
+
+	resp := oas.CreateTripDraftResponse{
+		Trip: oas.TripCreated{
+			TripId:          string(created.ID),
+			Status:          oas.TripStatus(created.Status),
+			DraftVisibility: oas.DraftVisibility(created.DraftVisibility),
+		},
+	}
+
+	if s.Idem != nil {
+		respFP := idempotency.Fingerprint{
+			Key:      idempotency.Key(req.Params.IdempotencyKey),
+			Subject:  domain.SubjectID(sub),
+			Method:   http.MethodPost,
+			Route:    "/trips",
+			BodyHash: bodyHash,
+		}
+		if b, err := json.Marshal(resp); err == nil {
+			_ = s.Idem.Put(ctx, respFP, idempotency.Record{
+				StatusCode:  http.StatusCreated,
+				ContentType: "application/json",
+				Body:        b,
+				CreatedAt:   time.Now().UTC(),
+			})
+		}
+	}
+
+	return oas.CreateTripDraft201JSONResponse(resp), nil
+}
+
+func (s *Server) UpdateTrip(ctx context.Context, req oas.UpdateTripRequestObject) (oas.UpdateTripResponseObject, error) {
+	sub, ok := SubjectFromContext(ctx)
+	if !ok {
+		return oas.UpdateTrip401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "UNAUTHORIZED", "missing subject", nil))}, nil
+	}
+	me, err := s.Members.GetMyMemberProfile(ctx, domain.SubjectID(sub))
+	if err != nil {
+		if isMemberNotProvisioned(err) {
+			return oas.UpdateTrip401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "MEMBER_NOT_PROVISIONED", "No member profile exists for the authenticated subject.", nil))}, nil
+		}
+		return nil, err
+	}
+	if req.Body == nil {
+		return oas.UpdateTrip422JSONResponse{UnprocessableEntityJSONResponse: oas.UnprocessableEntityJSONResponse(oasError(ctx, "VALIDATION_ERROR", "missing request body", nil))}, nil
+	}
+
+	bodyHash, err := hashUpdateTripBody(req.TripId, *req.Body)
+	if err != nil {
+		return nil, err
+	}
+	metaFP := idempotency.Fingerprint{
+		Key:      idempotency.Key(req.Params.IdempotencyKey),
+		Subject:  domain.SubjectID(sub),
+		Method:   http.MethodPatch,
+		Route:    "/trips/{tripId}",
+		BodyHash: "",
+	}
+	if s.Idem != nil {
+		if meta, ok, err := s.Idem.Get(ctx, metaFP); err != nil {
+			return nil, err
+		} else if ok {
+			if string(meta.Body) != bodyHash {
+				return oas.UpdateTrip409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, "IDEMPOTENCY_KEY_REUSE", "idempotency key reuse with different payload", nil))}, nil
+			}
+		} else {
+			_ = s.Idem.Put(ctx, metaFP, idempotency.Record{
+				StatusCode:  0,
+				ContentType: "text/plain",
+				Body:        []byte(bodyHash),
+				CreatedAt:   time.Now().UTC(),
+			})
+		}
+
+		respFP := metaFP
+		respFP.BodyHash = bodyHash
+		if rec, ok, err := s.Idem.Get(ctx, respFP); err != nil {
+			return nil, err
+		} else if ok && rec.StatusCode == http.StatusOK && strings.HasPrefix(rec.ContentType, "application/json") {
+			var payload oas.TripResponse
+			if err := json.Unmarshal(rec.Body, &payload); err == nil {
+				return oas.UpdateTrip200JSONResponse(payload), nil
+			}
+		}
+	}
+
+	in := updateTripInputFromOAS(*req.Body)
+	td, err := s.Trips.UpdateTrip(ctx, me.ID, domain.TripID(req.TripId), in)
+	if err != nil {
+		if ae := (*trips.Error)(nil); errors.As(err, &ae) {
+			switch ae.Status {
+			case http.StatusNotFound:
+				return oas.UpdateTrip404JSONResponse{NotFoundJSONResponse: oas.NotFoundJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusConflict:
+				return oas.UpdateTrip409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusUnprocessableEntity:
+				return oas.UpdateTrip422JSONResponse{UnprocessableEntityJSONResponse: oas.UnprocessableEntityJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			default:
+				return nil, err
+			}
+		}
+		return nil, err
+	}
+
+	resp := oas.TripResponse{Trip: tripDetailsFromDomain(td)}
+	if s.Idem != nil {
+		respFP := idempotency.Fingerprint{
+			Key:      idempotency.Key(req.Params.IdempotencyKey),
+			Subject:  domain.SubjectID(sub),
+			Method:   http.MethodPatch,
+			Route:    "/trips/{tripId}",
+			BodyHash: bodyHash,
+		}
+		if b, err := json.Marshal(resp); err == nil {
+			_ = s.Idem.Put(ctx, respFP, idempotency.Record{
+				StatusCode:  http.StatusOK,
+				ContentType: "application/json",
+				Body:        b,
+				CreatedAt:   time.Now().UTC(),
+			})
+		}
+	}
+
+	return oas.UpdateTrip200JSONResponse(resp), nil
+}
+
+func (s *Server) SetTripDraftVisibility(ctx context.Context, req oas.SetTripDraftVisibilityRequestObject) (oas.SetTripDraftVisibilityResponseObject, error) {
+	sub, ok := SubjectFromContext(ctx)
+	if !ok {
+		return oas.SetTripDraftVisibility401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "UNAUTHORIZED", "missing subject", nil))}, nil
+	}
+	me, err := s.Members.GetMyMemberProfile(ctx, domain.SubjectID(sub))
+	if err != nil {
+		if isMemberNotProvisioned(err) {
+			return oas.SetTripDraftVisibility401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "MEMBER_NOT_PROVISIONED", "No member profile exists for the authenticated subject.", nil))}, nil
+		}
+		return nil, err
+	}
+	if req.Body == nil {
+		return oas.SetTripDraftVisibility422JSONResponse{UnprocessableEntityJSONResponse: oas.UnprocessableEntityJSONResponse(oasError(ctx, "VALIDATION_ERROR", "missing request body", nil))}, nil
+	}
+
+	bodyHash, err := hashSetTripDraftVisibilityBody(req.TripId, *req.Body)
+	if err != nil {
+		return nil, err
+	}
+	metaFP := idempotency.Fingerprint{
+		Key:      idempotency.Key(req.Params.IdempotencyKey),
+		Subject:  domain.SubjectID(sub),
+		Method:   http.MethodPut,
+		Route:    "/trips/{tripId}/draft-visibility",
+		BodyHash: "",
+	}
+	if s.Idem != nil {
+		if meta, ok, err := s.Idem.Get(ctx, metaFP); err != nil {
+			return nil, err
+		} else if ok {
+			if string(meta.Body) != bodyHash {
+				return oas.SetTripDraftVisibility409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, "IDEMPOTENCY_KEY_REUSE", "idempotency key reuse with different payload", nil))}, nil
+			}
+		} else {
+			_ = s.Idem.Put(ctx, metaFP, idempotency.Record{
+				StatusCode:  0,
+				ContentType: "text/plain",
+				Body:        []byte(bodyHash),
+				CreatedAt:   time.Now().UTC(),
+			})
+		}
+
+		respFP := metaFP
+		respFP.BodyHash = bodyHash
+		if rec, ok, err := s.Idem.Get(ctx, respFP); err != nil {
+			return nil, err
+		} else if ok && rec.StatusCode == http.StatusOK && strings.HasPrefix(rec.ContentType, "application/json") {
+			var payload oas.TripResponse
+			if err := json.Unmarshal(rec.Body, &payload); err == nil {
+				return oas.SetTripDraftVisibility200JSONResponse(payload), nil
+			}
+		}
+	}
+
+	td, err := s.Trips.SetTripDraftVisibility(ctx, me.ID, domain.TripID(req.TripId), domain.DraftVisibility(req.Body.DraftVisibility))
+	if err != nil {
+		if ae := (*trips.Error)(nil); errors.As(err, &ae) {
+			switch ae.Status {
+			case http.StatusNotFound:
+				return oas.SetTripDraftVisibility404JSONResponse{NotFoundJSONResponse: oas.NotFoundJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusConflict:
+				return oas.SetTripDraftVisibility409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusUnprocessableEntity:
+				return oas.SetTripDraftVisibility422JSONResponse{UnprocessableEntityJSONResponse: oas.UnprocessableEntityJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			default:
+				return nil, err
+			}
+		}
+		return nil, err
+	}
+
+	resp := oas.TripResponse{Trip: tripDetailsFromDomain(td)}
+	if s.Idem != nil {
+		respFP := idempotency.Fingerprint{
+			Key:      idempotency.Key(req.Params.IdempotencyKey),
+			Subject:  domain.SubjectID(sub),
+			Method:   http.MethodPut,
+			Route:    "/trips/{tripId}/draft-visibility",
+			BodyHash: bodyHash,
+		}
+		if b, err := json.Marshal(resp); err == nil {
+			_ = s.Idem.Put(ctx, respFP, idempotency.Record{
+				StatusCode:  http.StatusOK,
+				ContentType: "application/json",
+				Body:        b,
+				CreatedAt:   time.Now().UTC(),
+			})
+		}
+	}
+
+	return oas.SetTripDraftVisibility200JSONResponse(resp), nil
+}
+
+func (s *Server) PublishTrip(ctx context.Context, req oas.PublishTripRequestObject) (oas.PublishTripResponseObject, error) {
+	sub, ok := SubjectFromContext(ctx)
+	if !ok {
+		return oas.PublishTrip401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "UNAUTHORIZED", "missing subject", nil))}, nil
+	}
+	me, err := s.Members.GetMyMemberProfile(ctx, domain.SubjectID(sub))
+	if err != nil {
+		if isMemberNotProvisioned(err) {
+			return oas.PublishTrip401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "MEMBER_NOT_PROVISIONED", "No member profile exists for the authenticated subject.", nil))}, nil
+		}
+		return nil, err
+	}
+
+	td, copy, err := s.Trips.PublishTrip(ctx, me.ID, domain.TripID(req.TripId))
+	if err != nil {
+		if ae := (*trips.Error)(nil); errors.As(err, &ae) {
+			switch ae.Status {
+			case http.StatusNotFound:
+				return oas.PublishTrip404JSONResponse{NotFoundJSONResponse: oas.NotFoundJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusConflict:
+				return oas.PublishTrip409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusUnprocessableEntity:
+				return oas.PublishTrip422JSONResponse{UnprocessableEntityJSONResponse: oas.UnprocessableEntityJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			default:
+				return nil, err
+			}
+		}
+		return nil, err
+	}
+
+	return oas.PublishTrip200JSONResponse{Trip: tripDetailsFromDomain(td), AnnouncementCopy: copy}, nil
+}
+
+func (s *Server) CancelTrip(ctx context.Context, req oas.CancelTripRequestObject) (oas.CancelTripResponseObject, error) {
+	sub, ok := SubjectFromContext(ctx)
+	if !ok {
+		return oas.CancelTrip401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "UNAUTHORIZED", "missing subject", nil))}, nil
+	}
+	me, err := s.Members.GetMyMemberProfile(ctx, domain.SubjectID(sub))
+	if err != nil {
+		if isMemberNotProvisioned(err) {
+			return oas.CancelTrip401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "MEMBER_NOT_PROVISIONED", "No member profile exists for the authenticated subject.", nil))}, nil
+		}
+		return nil, err
+	}
+
+	var bodyHash string
+	var idemKey string
+	if req.Params.IdempotencyKey != nil {
+		idemKey = *req.Params.IdempotencyKey
+		var err error
+		bodyHash, err = hashCancelTripBody(req.TripId)
+		if err != nil {
+			return nil, err
+		}
+
+		metaFP := idempotency.Fingerprint{
+			Key:      idempotency.Key(idemKey),
+			Subject:  domain.SubjectID(sub),
+			Method:   http.MethodPost,
+			Route:    "/trips/{tripId}/cancel",
+			BodyHash: "",
+		}
+		if s.Idem != nil {
+			if meta, ok, err := s.Idem.Get(ctx, metaFP); err != nil {
+				return nil, err
+			} else if ok {
+				if string(meta.Body) != bodyHash {
+					return oas.CancelTrip409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, "IDEMPOTENCY_KEY_REUSE", "idempotency key reuse with different payload", nil))}, nil
+				}
+			} else {
+				_ = s.Idem.Put(ctx, metaFP, idempotency.Record{
+					StatusCode:  0,
+					ContentType: "text/plain",
+					Body:        []byte(bodyHash),
+					CreatedAt:   time.Now().UTC(),
+				})
+			}
+
+			respFP := metaFP
+			respFP.BodyHash = bodyHash
+			if rec, ok, err := s.Idem.Get(ctx, respFP); err != nil {
+				return nil, err
+			} else if ok && rec.StatusCode == http.StatusOK && strings.HasPrefix(rec.ContentType, "application/json") {
+				var payload oas.TripResponse
+				if err := json.Unmarshal(rec.Body, &payload); err == nil {
+					return oas.CancelTrip200JSONResponse(payload), nil
+				}
+			}
+		}
+	}
+
+	td, err := s.Trips.CancelTrip(ctx, me.ID, domain.TripID(req.TripId))
+	if err != nil {
+		if ae := (*trips.Error)(nil); errors.As(err, &ae) {
+			switch ae.Status {
+			case http.StatusNotFound:
+				return oas.CancelTrip404JSONResponse{NotFoundJSONResponse: oas.NotFoundJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusConflict:
+				return oas.CancelTrip409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusUnprocessableEntity:
+				return oas.CancelTrip422JSONResponse{UnprocessableEntityJSONResponse: oas.UnprocessableEntityJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			default:
+				return nil, err
+			}
+		}
+		return nil, err
+	}
+
+	resp := oas.TripResponse{Trip: tripDetailsFromDomain(td)}
+	if s.Idem != nil && idemKey != "" {
+		respFP := idempotency.Fingerprint{
+			Key:      idempotency.Key(idemKey),
+			Subject:  domain.SubjectID(sub),
+			Method:   http.MethodPost,
+			Route:    "/trips/{tripId}/cancel",
+			BodyHash: bodyHash,
+		}
+		if b, err := json.Marshal(resp); err == nil {
+			_ = s.Idem.Put(ctx, respFP, idempotency.Record{
+				StatusCode:  http.StatusOK,
+				ContentType: "application/json",
+				Body:        b,
+				CreatedAt:   time.Now().UTC(),
+			})
+		}
+	}
+
+	return oas.CancelTrip200JSONResponse(resp), nil
+}
+
+func (s *Server) AddTripOrganizer(ctx context.Context, req oas.AddTripOrganizerRequestObject) (oas.AddTripOrganizerResponseObject, error) {
+	sub, ok := SubjectFromContext(ctx)
+	if !ok {
+		return oas.AddTripOrganizer401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "UNAUTHORIZED", "missing subject", nil))}, nil
+	}
+	me, err := s.Members.GetMyMemberProfile(ctx, domain.SubjectID(sub))
+	if err != nil {
+		if isMemberNotProvisioned(err) {
+			return oas.AddTripOrganizer401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "MEMBER_NOT_PROVISIONED", "No member profile exists for the authenticated subject.", nil))}, nil
+		}
+		return nil, err
+	}
+	if req.Body == nil {
+		return oas.AddTripOrganizer422JSONResponse{UnprocessableEntityJSONResponse: oas.UnprocessableEntityJSONResponse(oasError(ctx, "VALIDATION_ERROR", "missing request body", nil))}, nil
+	}
+
+	bodyHash, err := hashAddTripOrganizerBody(req.TripId, *req.Body)
+	if err != nil {
+		return nil, err
+	}
+	metaFP := idempotency.Fingerprint{
+		Key:      idempotency.Key(req.Params.IdempotencyKey),
+		Subject:  domain.SubjectID(sub),
+		Method:   http.MethodPost,
+		Route:    "/trips/{tripId}/organizers",
+		BodyHash: "",
+	}
+	if s.Idem != nil {
+		if meta, ok, err := s.Idem.Get(ctx, metaFP); err != nil {
+			return nil, err
+		} else if ok {
+			if string(meta.Body) != bodyHash {
+				return oas.AddTripOrganizer409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, "IDEMPOTENCY_KEY_REUSE", "idempotency key reuse with different payload", nil))}, nil
+			}
+		} else {
+			_ = s.Idem.Put(ctx, metaFP, idempotency.Record{
+				StatusCode:  0,
+				ContentType: "text/plain",
+				Body:        []byte(bodyHash),
+				CreatedAt:   time.Now().UTC(),
+			})
+		}
+
+		respFP := metaFP
+		respFP.BodyHash = bodyHash
+		if rec, ok, err := s.Idem.Get(ctx, respFP); err != nil {
+			return nil, err
+		} else if ok && rec.StatusCode == http.StatusOK && strings.HasPrefix(rec.ContentType, "application/json") {
+			var payload oas.TripResponse
+			if err := json.Unmarshal(rec.Body, &payload); err == nil {
+				return oas.AddTripOrganizer200JSONResponse(payload), nil
+			}
+		}
+	}
+
+	td, err := s.Trips.AddTripOrganizer(ctx, me.ID, domain.TripID(req.TripId), domain.MemberID(req.Body.MemberId))
+	if err != nil {
+		if ae := (*trips.Error)(nil); errors.As(err, &ae) {
+			switch ae.Status {
+			case http.StatusNotFound:
+				return oas.AddTripOrganizer404JSONResponse{NotFoundJSONResponse: oas.NotFoundJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusConflict:
+				return oas.AddTripOrganizer409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusUnprocessableEntity:
+				return oas.AddTripOrganizer422JSONResponse{UnprocessableEntityJSONResponse: oas.UnprocessableEntityJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			default:
+				return nil, err
+			}
+		}
+		return nil, err
+	}
+
+	resp := oas.TripResponse{Trip: tripDetailsFromDomain(td)}
+	if s.Idem != nil {
+		respFP := idempotency.Fingerprint{
+			Key:      idempotency.Key(req.Params.IdempotencyKey),
+			Subject:  domain.SubjectID(sub),
+			Method:   http.MethodPost,
+			Route:    "/trips/{tripId}/organizers",
+			BodyHash: bodyHash,
+		}
+		if b, err := json.Marshal(resp); err == nil {
+			_ = s.Idem.Put(ctx, respFP, idempotency.Record{
+				StatusCode:  http.StatusOK,
+				ContentType: "application/json",
+				Body:        b,
+				CreatedAt:   time.Now().UTC(),
+			})
+		}
+	}
+
+	return oas.AddTripOrganizer200JSONResponse(resp), nil
+}
+
+func (s *Server) RemoveTripOrganizer(ctx context.Context, req oas.RemoveTripOrganizerRequestObject) (oas.RemoveTripOrganizerResponseObject, error) {
+	sub, ok := SubjectFromContext(ctx)
+	if !ok {
+		return oas.RemoveTripOrganizer401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "UNAUTHORIZED", "missing subject", nil))}, nil
+	}
+	me, err := s.Members.GetMyMemberProfile(ctx, domain.SubjectID(sub))
+	if err != nil {
+		if isMemberNotProvisioned(err) {
+			return oas.RemoveTripOrganizer401JSONResponse{UnauthorizedJSONResponse: oas.UnauthorizedJSONResponse(oasError(ctx, "MEMBER_NOT_PROVISIONED", "No member profile exists for the authenticated subject.", nil))}, nil
+		}
+		return nil, err
+	}
+
+	bodyHash, err := hashRemoveTripOrganizerBody(req.TripId, req.MemberId)
+	if err != nil {
+		return nil, err
+	}
+	metaFP := idempotency.Fingerprint{
+		Key:      idempotency.Key(req.Params.IdempotencyKey),
+		Subject:  domain.SubjectID(sub),
+		Method:   http.MethodDelete,
+		Route:    "/trips/{tripId}/organizers/{memberId}",
+		BodyHash: "",
+	}
+	if s.Idem != nil {
+		if meta, ok, err := s.Idem.Get(ctx, metaFP); err != nil {
+			return nil, err
+		} else if ok {
+			if string(meta.Body) != bodyHash {
+				return oas.RemoveTripOrganizer409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, "IDEMPOTENCY_KEY_REUSE", "idempotency key reuse with different payload", nil))}, nil
+			}
+		} else {
+			_ = s.Idem.Put(ctx, metaFP, idempotency.Record{
+				StatusCode:  0,
+				ContentType: "text/plain",
+				Body:        []byte(bodyHash),
+				CreatedAt:   time.Now().UTC(),
+			})
+		}
+
+		respFP := metaFP
+		respFP.BodyHash = bodyHash
+		if rec, ok, err := s.Idem.Get(ctx, respFP); err != nil {
+			return nil, err
+		} else if ok && rec.StatusCode == http.StatusOK && strings.HasPrefix(rec.ContentType, "application/json") {
+			var payload oas.TripResponse
+			if err := json.Unmarshal(rec.Body, &payload); err == nil {
+				return oas.RemoveTripOrganizer200JSONResponse(payload), nil
+			}
+		}
+	}
+
+	td, err := s.Trips.RemoveTripOrganizer(ctx, me.ID, domain.TripID(req.TripId), domain.MemberID(req.MemberId))
+	if err != nil {
+		if ae := (*trips.Error)(nil); errors.As(err, &ae) {
+			switch ae.Status {
+			case http.StatusNotFound:
+				return oas.RemoveTripOrganizer404JSONResponse{NotFoundJSONResponse: oas.NotFoundJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusConflict:
+				return oas.RemoveTripOrganizer409JSONResponse{ConflictJSONResponse: oas.ConflictJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			case http.StatusUnprocessableEntity:
+				return oas.RemoveTripOrganizer422JSONResponse{UnprocessableEntityJSONResponse: oas.UnprocessableEntityJSONResponse(oasError(ctx, ae.Code, ae.Message, ae.Details))}, nil
+			default:
+				return nil, err
+			}
+		}
+		return nil, err
+	}
+
+	resp := oas.TripResponse{Trip: tripDetailsFromDomain(td)}
+	if s.Idem != nil {
+		respFP := idempotency.Fingerprint{
+			Key:      idempotency.Key(req.Params.IdempotencyKey),
+			Subject:  domain.SubjectID(sub),
+			Method:   http.MethodDelete,
+			Route:    "/trips/{tripId}/organizers/{memberId}",
+			BodyHash: bodyHash,
+		}
+		if b, err := json.Marshal(resp); err == nil {
+			_ = s.Idem.Put(ctx, respFP, idempotency.Record{
+				StatusCode:  http.StatusOK,
+				ContentType: "application/json",
+				Body:        b,
+				CreatedAt:   time.Now().UTC(),
+			})
+		}
+	}
+
+	return oas.RemoveTripOrganizer200JSONResponse(resp), nil
+}
+
 func isMemberNotProvisioned(err error) bool {
 	ae := (*members.Error)(nil)
 	if errors.As(err, &ae) {
@@ -624,6 +1234,200 @@ func hashUpdateMyMemberProfileBody(b oas.UpdateMyMemberProfileRequest) (string, 
 	}
 	sum := sha256.Sum256(raw)
 	return hex.EncodeToString(sum[:]), nil
+}
+
+func hashCreateTripDraftBody(b oas.CreateTripDraftRequest) (string, error) {
+	canon := b
+	canon.Name = domain.NormalizeHumanName(canon.Name)
+	raw, err := json.Marshal(canon)
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(raw)
+	return hex.EncodeToString(sum[:]), nil
+}
+
+func hashUpdateTripBody(tripID string, b oas.UpdateTripRequest) (string, error) {
+	canon := b
+	if canon.Name != nil {
+		n := domain.NormalizeHumanName(*canon.Name)
+		canon.Name = &n
+	}
+	raw, err := json.Marshal(struct {
+		TripId string             `json:"tripId"`
+		Body   oas.UpdateTripRequest `json:"body"`
+	}{
+		TripId: tripID,
+		Body:   canon,
+	})
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(raw)
+	return hex.EncodeToString(sum[:]), nil
+}
+
+func hashSetTripDraftVisibilityBody(tripID string, b oas.SetDraftVisibilityRequest) (string, error) {
+	raw, err := json.Marshal(struct {
+		TripId string                  `json:"tripId"`
+		Body   oas.SetDraftVisibilityRequest `json:"body"`
+	}{
+		TripId: tripID,
+		Body:   b,
+	})
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(raw)
+	return hex.EncodeToString(sum[:]), nil
+}
+
+func hashAddTripOrganizerBody(tripID string, b oas.AddOrganizerRequest) (string, error) {
+	raw, err := json.Marshal(struct {
+		TripId string               `json:"tripId"`
+		Body   oas.AddOrganizerRequest `json:"body"`
+	}{
+		TripId: tripID,
+		Body:   b,
+	})
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(raw)
+	return hex.EncodeToString(sum[:]), nil
+}
+
+func hashRemoveTripOrganizerBody(tripID string, memberID string) (string, error) {
+	raw, err := json.Marshal(struct {
+		TripId   string `json:"tripId"`
+		MemberId string `json:"memberId"`
+	}{
+		TripId:   tripID,
+		MemberId: memberID,
+	})
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(raw)
+	return hex.EncodeToString(sum[:]), nil
+}
+
+func hashCancelTripBody(tripID string) (string, error) {
+	raw, err := json.Marshal(struct {
+		TripId string `json:"tripId"`
+	}{
+		TripId: tripID,
+	})
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(raw)
+	return hex.EncodeToString(sum[:]), nil
+}
+
+func updateTripInputFromOAS(b oas.UpdateTripRequest) trips.UpdateTripInput {
+	out := trips.UpdateTripInput{}
+
+	if b.Name != nil {
+		out.Name = trips.Some(*b.Name)
+	}
+
+	out.Description = optionalStringFromNullableTrips(b.Description)
+	out.DifficultyText = optionalStringFromNullableTrips(b.DifficultyText)
+	out.CommsRequirementsText = optionalStringFromNullableTrips(b.CommsRequirementsText)
+	out.RecommendedRequirementsText = optionalStringFromNullableTrips(b.RecommendedRequirementsText)
+	out.CapacityRigs = optionalIntFromNullableTrips(b.CapacityRigs)
+	out.StartDate = optionalTimeFromNullableDateTrips(b.StartDate)
+	out.EndDate = optionalTimeFromNullableDateTrips(b.EndDate)
+	out.ArtifactIDs = optionalStringSliceFromNullableTrips(b.ArtifactIds)
+
+	if b.MeetingLocation != nil {
+		lp := trips.LocationPatch{
+			Label:   optionalStringFromNullableTrips(b.MeetingLocation.Label),
+			Address: optionalStringFromNullableTrips(b.MeetingLocation.Address),
+		}
+		if b.MeetingLocation.LatitudeLongitude.IsSpecified() {
+			if b.MeetingLocation.LatitudeLongitude.IsNull() {
+				lp.ClearCoordinates = true
+			} else if v, err := b.MeetingLocation.LatitudeLongitude.Get(); err == nil {
+				lp.Latitude = optionalFloatFromNullableTrips(v.Latitude)
+				lp.Longitude = optionalFloatFromNullableTrips(v.Longitude)
+			}
+		}
+		out.MeetingLocation = trips.Some(&lp)
+	}
+
+	return out
+}
+
+func optionalStringFromNullableTrips(n nullable.Nullable[string]) trips.Optional[string] {
+	if !n.IsSpecified() {
+		return trips.Unspecified[string]()
+	}
+	if n.IsNull() {
+		return trips.Null[string]()
+	}
+	v, err := n.Get()
+	if err != nil {
+		return trips.Unspecified[string]()
+	}
+	return trips.Some(v)
+}
+
+func optionalIntFromNullableTrips(n nullable.Nullable[int]) trips.Optional[int] {
+	if !n.IsSpecified() {
+		return trips.Unspecified[int]()
+	}
+	if n.IsNull() {
+		return trips.Null[int]()
+	}
+	v, err := n.Get()
+	if err != nil {
+		return trips.Unspecified[int]()
+	}
+	return trips.Some(v)
+}
+
+func optionalFloatFromNullableTrips(n nullable.Nullable[float64]) trips.Optional[float64] {
+	if !n.IsSpecified() {
+		return trips.Unspecified[float64]()
+	}
+	if n.IsNull() {
+		return trips.Null[float64]()
+	}
+	v, err := n.Get()
+	if err != nil {
+		return trips.Unspecified[float64]()
+	}
+	return trips.Some(v)
+}
+
+func optionalTimeFromNullableDateTrips(n nullable.Nullable[openapi_types.Date]) trips.Optional[time.Time] {
+	if !n.IsSpecified() {
+		return trips.Unspecified[time.Time]()
+	}
+	if n.IsNull() {
+		return trips.Null[time.Time]()
+	}
+	v, err := n.Get()
+	if err != nil {
+		return trips.Unspecified[time.Time]()
+	}
+	return trips.Some(v.Time)
+}
+
+func optionalStringSliceFromNullableTrips(n nullable.Nullable[[]string]) trips.Optional[[]string] {
+	if !n.IsSpecified() {
+		return trips.Unspecified[[]string]()
+	}
+	if n.IsNull() {
+		return trips.Null[[]string]()
+	}
+	v, err := n.Get()
+	if err != nil {
+		return trips.Unspecified[[]string]()
+	}
+	return trips.Some(v)
 }
 
 

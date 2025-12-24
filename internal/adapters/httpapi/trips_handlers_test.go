@@ -28,7 +28,7 @@ type fixedClockTrips struct{ t time.Time }
 
 func (c fixedClockTrips) Now() time.Time { return c.t }
 
-func newTestTripRouter(t *testing.T) (http.Handler, func(now time.Time, kid string) string, *memtriprepo.Repo, *memmemberrepo.Repo) {
+func newTestTripRouter(t *testing.T) (http.Handler, func(now time.Time, kid string, sub string) string, *memtriprepo.Repo, *memmemberrepo.Repo) {
 	t.Helper()
 
 	kp, err := jwks_testutil.GenerateRSAKeypair("kid-1")
@@ -60,12 +60,12 @@ func newTestTripRouter(t *testing.T) (http.Handler, func(now time.Time, kid stri
 	api := NewServer(memberSvc, tripSvc, idem)
 	h := NewRouterWithOptions(api, RouterOptions{AuthMiddleware: NewAuthMiddleware(v)})
 
-	mint := func(now time.Time, kid string) string {
+	mint := func(now time.Time, kid string, sub string) string {
 		jwt, err := jwks_testutil.MintRS256JWT(
 			jwks_testutil.Keypair{Kid: kid, Private: kp.Private},
 			jwtCfg.Issuer,
 			jwtCfg.Audience,
-			"sub-1",
+			sub,
 			now,
 			10*time.Minute,
 			nil,
@@ -79,10 +79,11 @@ func newTestTripRouter(t *testing.T) (http.Handler, func(now time.Time, kid stri
 	return h, mint, tripRepo, memberRepo
 }
 
-func provisionCaller(t *testing.T, h http.Handler, authz string) domain.MemberID {
+func provisionCaller(t *testing.T, h http.Handler, authz string, email string) domain.MemberID {
 	t.Helper()
 
-	req := httptest.NewRequest(http.MethodPost, "/members", bytes.NewBufferString(`{"displayName":"Alice","email":"alice@example.com"}`))
+	body := `{"displayName":"Alice","email":"` + email + `"}`
+	req := httptest.NewRequest(http.MethodPost, "/members", bytes.NewBufferString(body))
 	req.Header.Set("Authorization", authz)
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
@@ -104,8 +105,8 @@ func TestTrips_ListVisibleTripsForMember_FiltersAndSorts(t *testing.T) {
 	t.Parallel()
 
 	h, mint, tripRepo, _ := newTestTripRouter(t)
-	authz := "Bearer " + mint(time.Unix(1700000000, 0), "kid-1")
-	_ = provisionCaller(t, h, authz)
+	authz := "Bearer " + mint(time.Unix(1700000000, 0), "kid-1", "sub-1")
+	_ = provisionCaller(t, h, authz, "alice1@example.com")
 
 	start1 := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	start2 := time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)
@@ -164,8 +165,8 @@ func TestTrips_ListMyDraftTrips_VisibilityAndDraftVisibilityField(t *testing.T) 
 	t.Parallel()
 
 	h, mint, tripRepo, memberRepo := newTestTripRouter(t)
-	authz := "Bearer " + mint(time.Unix(1700000000, 0), "kid-1")
-	callerID := provisionCaller(t, h, authz)
+	authz := "Bearer " + mint(time.Unix(1700000000, 0), "kid-1", "sub-1")
+	callerID := provisionCaller(t, h, authz, "alice1@example.com")
 
 	// Extra members (for organizer ID references).
 	_ = memberRepo.Create(context.Background(), portmemberrepo.Member{
@@ -241,8 +242,8 @@ func TestTrips_GetTripDetails_VisibilityRulesAndResponseShape(t *testing.T) {
 	t.Parallel()
 
 	h, mint, tripRepo, memberRepo := newTestTripRouter(t)
-	authz := "Bearer " + mint(time.Unix(1700000000, 0), "kid-1")
-	callerID := provisionCaller(t, h, authz)
+	authz := "Bearer " + mint(time.Unix(1700000000, 0), "kid-1", "sub-1")
+	callerID := provisionCaller(t, h, authz, "alice1@example.com")
 
 	// Add another organizer member so expansion works.
 	_ = memberRepo.Create(context.Background(), portmemberrepo.Member{
@@ -318,6 +319,145 @@ func TestTrips_GetTripDetails_VisibilityRulesAndResponseShape(t *testing.T) {
 	}
 	if len(resp.Trip.Organizers) != 2 || len(resp.Trip.Artifacts) != 1 {
 		t.Fatalf("organizers=%d artifacts=%d", len(resp.Trip.Organizers), len(resp.Trip.Artifacts))
+	}
+}
+
+func TestTrips_CreateTripDraft_Idempotency(t *testing.T) {
+	t.Parallel()
+
+	h, mint, _, _ := newTestTripRouter(t)
+	authz := "Bearer " + mint(time.Unix(1700000000, 0), "kid-1", "sub-1")
+	_ = provisionCaller(t, h, authz, "alice1@example.com")
+
+	body1 := bytes.NewBufferString(`{"name":"  Snow   Run  "}`)
+	req1 := httptest.NewRequest(http.MethodPost, "/trips", body1)
+	req1.Header.Set("Authorization", authz)
+	req1.Header.Set("Content-Type", "application/json")
+	req1.Header.Set("Idempotency-Key", "k1")
+	rec1 := httptest.NewRecorder()
+	h.ServeHTTP(rec1, req1)
+	if rec1.Code != http.StatusCreated {
+		t.Fatalf("status=%d body=%s", rec1.Code, rec1.Body.String())
+	}
+	var resp1 struct {
+		Trip oas.TripCreated `json:"trip"`
+	}
+	if err := json.Unmarshal(rec1.Body.Bytes(), &resp1); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if resp1.Trip.Status != "DRAFT" || resp1.Trip.DraftVisibility != "PRIVATE" || resp1.Trip.TripId == "" {
+		t.Fatalf("resp=%+v", resp1.Trip)
+	}
+
+	// Same key + same payload (after normalization) should replay.
+	body2 := bytes.NewBufferString(`{"name":"Snow Run"}`)
+	req2 := httptest.NewRequest(http.MethodPost, "/trips", body2)
+	req2.Header.Set("Authorization", authz)
+	req2.Header.Set("Content-Type", "application/json")
+	req2.Header.Set("Idempotency-Key", "k1")
+	rec2 := httptest.NewRecorder()
+	h.ServeHTTP(rec2, req2)
+	if rec2.Code != http.StatusCreated {
+		t.Fatalf("status2=%d body=%s", rec2.Code, rec2.Body.String())
+	}
+	var resp2 struct {
+		Trip oas.TripCreated `json:"trip"`
+	}
+	if err := json.Unmarshal(rec2.Body.Bytes(), &resp2); err != nil {
+		t.Fatalf("decode2: %v", err)
+	}
+	if resp2.Trip.TripId != resp1.Trip.TripId {
+		t.Fatalf("tripId=%s want=%s", resp2.Trip.TripId, resp1.Trip.TripId)
+	}
+
+	// Same key + different payload should 409.
+	body3 := bytes.NewBufferString(`{"name":"Different"}`)
+	req3 := httptest.NewRequest(http.MethodPost, "/trips", body3)
+	req3.Header.Set("Authorization", authz)
+	req3.Header.Set("Content-Type", "application/json")
+	req3.Header.Set("Idempotency-Key", "k1")
+	rec3 := httptest.NewRecorder()
+	h.ServeHTTP(rec3, req3)
+	if rec3.Code != http.StatusConflict {
+		t.Fatalf("status3=%d body=%s", rec3.Code, rec3.Body.String())
+	}
+}
+
+func TestTrips_OrganizerFlow_SetVisibility_AddRemove_LastOrganizer(t *testing.T) {
+	t.Parallel()
+
+	h, mint, _, _ := newTestTripRouter(t)
+	authz1 := "Bearer " + mint(time.Unix(1700000000, 0), "kid-1", "sub-1")
+	authz2 := "Bearer " + mint(time.Unix(1700000000, 0), "kid-1", "sub-2")
+	creatorID := provisionCaller(t, h, authz1, "alice1@example.com")
+	member2ID := provisionCaller(t, h, authz2, "bob2@example.com")
+
+	// Create draft.
+	reqCreate := httptest.NewRequest(http.MethodPost, "/trips", bytes.NewBufferString(`{"name":"Trip"}`))
+	reqCreate.Header.Set("Authorization", authz1)
+	reqCreate.Header.Set("Content-Type", "application/json")
+	reqCreate.Header.Set("Idempotency-Key", "k-create")
+	recCreate := httptest.NewRecorder()
+	h.ServeHTTP(recCreate, reqCreate)
+	if recCreate.Code != http.StatusCreated {
+		t.Fatalf("create status=%d body=%s", recCreate.Code, recCreate.Body.String())
+	}
+	var created struct {
+		Trip oas.TripCreated `json:"trip"`
+	}
+	_ = json.Unmarshal(recCreate.Body.Bytes(), &created)
+	tripID := created.Trip.TripId
+	if tripID == "" {
+		t.Fatalf("missing tripId")
+	}
+
+	// Make draft public so organizer list can grow.
+	reqVis := httptest.NewRequest(http.MethodPut, "/trips/"+tripID+"/draft-visibility", bytes.NewBufferString(`{"draftVisibility":"PUBLIC"}`))
+	reqVis.Header.Set("Authorization", authz1)
+	reqVis.Header.Set("Content-Type", "application/json")
+	reqVis.Header.Set("Idempotency-Key", "k-vis")
+	recVis := httptest.NewRecorder()
+	h.ServeHTTP(recVis, reqVis)
+	if recVis.Code != http.StatusOK {
+		t.Fatalf("vis status=%d body=%s", recVis.Code, recVis.Body.String())
+	}
+
+	// Add organizer.
+	reqAdd := httptest.NewRequest(http.MethodPost, "/trips/"+tripID+"/organizers", bytes.NewBufferString(`{"memberId":"`+string(member2ID)+`"}`))
+	reqAdd.Header.Set("Authorization", authz1)
+	reqAdd.Header.Set("Content-Type", "application/json")
+	reqAdd.Header.Set("Idempotency-Key", "k-add")
+	recAdd := httptest.NewRecorder()
+	h.ServeHTTP(recAdd, reqAdd)
+	if recAdd.Code != http.StatusOK {
+		t.Fatalf("add status=%d body=%s", recAdd.Code, recAdd.Body.String())
+	}
+	var addResp struct {
+		Trip oas.TripDetails `json:"trip"`
+	}
+	_ = json.Unmarshal(recAdd.Body.Bytes(), &addResp)
+	if len(addResp.Trip.Organizers) != 2 {
+		t.Fatalf("organizers=%d want=2", len(addResp.Trip.Organizers))
+	}
+
+	// Remove organizer.
+	reqDel := httptest.NewRequest(http.MethodDelete, "/trips/"+tripID+"/organizers/"+string(member2ID), nil)
+	reqDel.Header.Set("Authorization", authz1)
+	reqDel.Header.Set("Idempotency-Key", "k-del")
+	recDel := httptest.NewRecorder()
+	h.ServeHTTP(recDel, reqDel)
+	if recDel.Code != http.StatusOK {
+		t.Fatalf("del status=%d body=%s", recDel.Code, recDel.Body.String())
+	}
+
+	// Cannot remove last organizer.
+	reqDelCreator := httptest.NewRequest(http.MethodDelete, "/trips/"+tripID+"/organizers/"+string(creatorID), nil)
+	reqDelCreator.Header.Set("Authorization", authz1)
+	reqDelCreator.Header.Set("Idempotency-Key", "k-del2")
+	recDelCreator := httptest.NewRecorder()
+	h.ServeHTTP(recDelCreator, reqDelCreator)
+	if recDelCreator.Code != http.StatusConflict {
+		t.Fatalf("delCreator status=%d body=%s", recDelCreator.Code, recDelCreator.Body.String())
 	}
 }
 

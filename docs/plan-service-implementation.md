@@ -219,13 +219,13 @@ Acceptance criteria:
 - `POST /trips/{tripId}/organizers`
 - `DELETE /trips/{tripId}/organizers/{memberId}`
 
-- [ ] Implement trip lifecycle invariants (draft → published → canceled)
-- [ ] Implement organizer authorization checks (creator vs organizer)
-- [ ] Implement idempotency behavior for endpoints requiring `Idempotency-Key`
+- [x] Implement trip lifecycle invariants (draft → published → canceled)
+- [x] Implement organizer authorization checks (creator vs organizer)
+- [x] Implement idempotency behavior for endpoints requiring `Idempotency-Key`
   - minimal first pass: dedupe by key + route + subject + request body hash
   - store the prior response body/status for replay
-- [ ] Unit test suite for trip invariants + idempotency
-- [ ] HTTP handler tests for each endpoint mapping + error cases
+- [x] Unit test suite for trip invariants + idempotency
+- [x] HTTP handler tests for each endpoint mapping + error cases
 
 Acceptance criteria:
 - Mutations are idempotent where required by the spec.
