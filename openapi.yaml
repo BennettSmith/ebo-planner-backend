@@ -62,7 +62,7 @@ paths:
     get:
       tags:
       - Trips
-      summary: List draft trips where the authenticated member is an organizer
+      summary: List draft trips visible to the authenticated member
       operationId: listMyDraftTrips
       responses:
         '200':
@@ -794,6 +794,7 @@ components:
         draftVisibility:
           $ref: '#/components/schemas/DraftVisibility'
           nullable: true
+          description: Present only when `status = DRAFT`. Omitted for non-draft trips.
         capacityRigs:
           type: integer
           minimum: 0
@@ -802,6 +803,7 @@ components:
           type: integer
           minimum: 0
           nullable: true
+          description: Present only when `status = PUBLISHED`. Omitted for `DRAFT` and `CANCELED`.
       required:
       - tripId
       - status
@@ -830,6 +832,7 @@ components:
         draftVisibility:
           $ref: '#/components/schemas/DraftVisibility'
           nullable: true
+          description: Present only when `status = DRAFT`. Omitted for non-draft trips.
         capacityRigs:
           type: integer
           minimum: 0
@@ -857,9 +860,11 @@ components:
         rsvpSummary:
           $ref: '#/components/schemas/TripRSVPSummary'
           nullable: true
+          description: Present only when `status in (PUBLISHED, CANCELED)`. Omitted for drafts.
         myRsvp:
           $ref: '#/components/schemas/MyRSVP'
           nullable: true
+          description: Present only when `status in (PUBLISHED, CANCELED)`. Omitted for drafts.
         rsvpActionsEnabled:
           type: boolean
           description: False for drafts and canceled trips.
