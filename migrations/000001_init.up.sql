@@ -327,7 +327,24 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
   organizer_count integer;
+  current_yes integer;
 BEGIN
+  -- Prevent reducing capacity below current attendance for published trips.
+  -- (Drafts have no RSVP; canceled trips are read-only at the app layer but this keeps the DB consistent.)
+  IF OLD.status = 'PUBLISHED'
+     AND NEW.capacity_rigs IS NOT NULL
+     AND (NEW.capacity_rigs IS DISTINCT FROM OLD.capacity_rigs) THEN
+    SELECT count(*) INTO current_yes
+    FROM trip_rsvps
+    WHERE trip_id = OLD.id
+      AND response = 'YES';
+
+    IF NEW.capacity_rigs < current_yes THEN
+      RAISE EXCEPTION 'Trip capacity_rigs (%) cannot be less than attending_rigs (%)', NEW.capacity_rigs, current_yes
+        USING ERRCODE = '23514';
+    END IF;
+  END IF;
+
   -- If status is changing to PUBLISHED, enforce required-at-publish fields (v1).
   IF (OLD.status <> 'PUBLISHED' AND NEW.status = 'PUBLISHED') THEN
     -- Must come from DRAFT
