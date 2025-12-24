@@ -23,7 +23,11 @@ Update any fields on a draft trip. Partial updates allowed.
    - If `draftVisibility = PRIVATE`: caller must be the creator (`created_by_member_id`).
    - If `draftVisibility = PUBLIC`: caller must be an organizer.
    - If not visible, return `404 Not Found` (do not reveal existence).
-5. System validates and applies only the provided fields.
+5. System validates and applies only the provided fields:
+   - If `name` is provided: trim leading/trailing whitespace, collapse internal whitespace runs, and require non-empty after normalization.
+   - Reject any attempt to patch `draftVisibility` here (use UC-05 instead).
+   - `meetingLocation` may be partially updated; set it to `null` to clear it.
+   - Artifacts are updated by replacing the ordered list of `artifactIds` for the trip.
 6. System persists the updated draft.
 7. System returns the updated trip details.
 
@@ -55,6 +59,7 @@ Update any fields on a draft trip. Partial updates allowed.
 - Only visible/authorized actors may update draft fields (see Authorization Rules).
 - At least one organizer must always exist.
 - RSVP is not allowed for drafts (no RSVP mutations here).
+- `draftVisibility` cannot be changed via this use case (UC-05 only).
 
 ---
 
@@ -66,8 +71,13 @@ Update any fields on a draft trip. Partial updates allowed.
 ## API Notes
 - Suggested endpoint: `PATCH /trips/{tripId}`
 - Prefer returning a stable DTO shape; avoid leaking internal persistence fields.
-- Mutating: consider idempotency keys where duplicate submissions are plausible.
+- Mutating: **require** an `Idempotency-Key` header to safely handle retries.
 - Prefer `PATCH` for partial updates; validate and apply only provided fields.
+
+### PATCH semantics (v1)
+- Omitted fields are not modified.
+- For nullable fields, an explicit `null` clears the value.
+- For arrays, providing a value replaces the entire array (e.g., `artifactIds`).
 
 ---
 

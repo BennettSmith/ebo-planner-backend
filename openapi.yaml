@@ -54,8 +54,6 @@ paths:
                 - trips
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalError'
     post:
@@ -128,8 +126,6 @@ paths:
                 $ref: '#/components/schemas/TripResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -138,11 +134,11 @@ paths:
       tags:
       - Trip Planning
       summary: Update a trip (draft or published)
-      description: 'Organizer-only. For drafts: update draft fields. For published: update published trip fields.'
+      description: 'For drafts: creator-only when private; organizer-only when public. For published: organizer-only.'
       operationId: updateTrip
       parameters:
       - $ref: '#/components/parameters/TripId'
-      - $ref: '#/components/parameters/IdempotencyKey'
+      - $ref: '#/components/parameters/RequiredIdempotencyKey'
       requestBody:
         required: true
         content:
@@ -158,8 +154,6 @@ paths:
                 $ref: '#/components/schemas/TripResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
@@ -711,6 +705,9 @@ components:
       type: object
       additionalProperties: false
       properties:
+        artifactId:
+          type: string
+          description: Stable identifier for this artifact (external_id).
         type:
           $ref: '#/components/schemas/ArtifactType'
         title:
@@ -719,9 +716,34 @@ components:
           type: string
           format: uri
       required:
+      - artifactId
       - type
       - title
       - url
+    LocationPatch:
+      type: object
+      additionalProperties: false
+      description: Partial update shape for Location. Omitted fields are unchanged.
+      properties:
+        label:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        latitudeLongitude:
+          type: object
+          nullable: true
+          additionalProperties: false
+          properties:
+            latitude:
+              type: number
+              format: double
+              nullable: true
+            longitude:
+              type: number
+              format: double
+              nullable: true
     VehicleProfile:
       type: object
       additionalProperties: false
@@ -963,7 +985,8 @@ components:
       properties:
         name:
           type: string
-          nullable: true
+          pattern: '.*\\S.*'
+          description: Title. Server trims leading/trailing whitespace and collapses internal whitespace runs before persisting.
         description:
           type: string
           nullable: true
@@ -975,9 +998,6 @@ components:
           type: string
           format: date
           nullable: true
-        draftVisibility:
-          $ref: '#/components/schemas/DraftVisibility'
-          nullable: true
         capacityRigs:
           type: integer
           minimum: 0
@@ -986,7 +1006,7 @@ components:
           type: string
           nullable: true
         meetingLocation:
-          $ref: '#/components/schemas/Location'
+          $ref: '#/components/schemas/LocationPatch'
           nullable: true
         commsRequirementsText:
           type: string
@@ -994,10 +1014,11 @@ components:
         recommendedRequirementsText:
           type: string
           nullable: true
-        artifacts:
+        artifactIds:
           type: array
           items:
-            $ref: '#/components/schemas/TripArtifact'
+            type: string
+          description: Replace the full artifact list for the trip with this ordered list of artifact IDs.
           nullable: true
     TripResponse:
       type: object
