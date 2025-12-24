@@ -400,6 +400,8 @@ paths:
       - Members
       summary: List members (minimal directory)
       operationId: listMembers
+      parameters:
+      - $ref: '#/components/parameters/IncludeInactive'
       responses:
         '200':
           description: Member directory returned
@@ -412,13 +414,11 @@ paths:
                   members:
                     type: array
                     items:
-                      $ref: '#/components/schemas/MemberSummary'
+                      $ref: '#/components/schemas/MemberDirectoryEntry'
                 required:
                 - members
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalError'
     post:
@@ -588,6 +588,14 @@ components:
         type: string
         minLength: 1
       description: Search query (name or email)
+    IncludeInactive:
+      name: includeInactive
+      in: query
+      required: false
+      schema:
+        type: boolean
+        default: false
+      description: If true, include inactive members in the directory list.
     IdempotencyKey:
       name: Idempotency-Key
       in: header
@@ -778,6 +786,18 @@ components:
       - memberId
       - displayName
       - email
+    MemberDirectoryEntry:
+      type: object
+      additionalProperties: false
+      description: Minimal member directory entry (no email fields).
+      properties:
+        memberId:
+          type: string
+        displayName:
+          type: string
+      required:
+      - memberId
+      - displayName
     MemberProfile:
       allOf:
       - $ref: '#/components/schemas/MemberSummary'
