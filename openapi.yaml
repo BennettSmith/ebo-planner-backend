@@ -35,7 +35,7 @@ paths:
     get:
       tags:
       - Trips
-      summary: List visible trips for the authenticated member
+      summary: List published + canceled trips for the authenticated member
       operationId: listVisibleTripsForMember
       responses:
         '200':
@@ -56,6 +56,31 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /trips/drafts:
+    get:
+      tags:
+      - Trips
+      summary: List draft trips where the authenticated member is an organizer
+      operationId: listMyDraftTrips
+      responses:
+        '200':
+          description: Draft trips returned
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  trips:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TripSummary'
+                required:
+                - trips
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
     post:

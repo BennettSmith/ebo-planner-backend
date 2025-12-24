@@ -4,11 +4,14 @@
 Member
 
 ## Goal
-Return all trips visible to a member.
+Return lists of trips relevant to the authenticated member.
+
+Two variants are supported:
+- Published + canceled trips (discovery)
+- Draft trips where the member is an organizer (work-in-progress)
 
 ## Preconditions
 - Caller is authenticated.
-- Target resource exists and is visible/accessible to the caller.
 
 ## Postconditions
 - Trip/member data is returned. No state is modified.
@@ -16,44 +19,53 @@ Return all trips visible to a member.
 ---
 
 ## Main Success Flow
-1. Actor invokes the use case with the required identifiers and inputs.
+**Variant 1 — Published + Canceled Trips**
+
+1. Actor requests the published/canceled trips list.
 2. System authenticates the caller.
-3. System authorizes the caller for the target resource (trip/member).
-4. System loads the required aggregate(s) and validates inputs.
-5. System executes the primary behavior.
-6. System returns the result.
+3. System loads trips where `status in (PUBLISHED, CANCELED)`.
+4. System sorts results by `startDate` (ascending). If `startDate` is missing, sort those trips by creation time (ascending) after dated trips.
+5. System maps each trip to a `TripSummary` DTO.
+6. System returns the list.
 
 ---
 
 ## Alternate Flows
-A1 — Include public drafts
-- **Condition:** Trips in `DRAFT` with `draftVisibility = PUBLIC` exist.
-- **Behavior:** System includes them alongside `PUBLISHED` trips.
-- **Outcome:** Visible trips list returned.
+A1 — Variant 2: Draft Trips Where Caller Is an Organizer
+- **Condition:** Actor requests the organizer-drafts list.
+- **Behavior:**
+  - System loads trips where `status = DRAFT` and caller is included in `organizerMemberIds`.
+  - System sorts results by `startDate` (ascending). If `startDate` is missing, sort those trips by creation time (ascending) after dated trips.
+  - System maps each trip to a `TripSummary` DTO.
+- **Outcome:** Draft trips list returned.
 
 ---
 
 ## Error Conditions
 - `401 Unauthorized` — caller is not authenticated
-- `403 Forbidden` — caller lacks permission for this operation
-- `404 Not Found` — target resource does not exist
-- `500 Internal Server Error` — unexpected failure
 
 ---
 
 ## Authorization Rules
 - Caller must be an authenticated member.
-- Any authenticated member may access this data (subject to trip draft visibility for drafts).
+- Any authenticated member may access Variant 1 (published + canceled trips).
+- Variant 2 returns only drafts where the caller is an organizer (no additional role is required beyond membership).
 ---
 
 ## Output
-- Success DTO or confirmation response (depending on operation)
+- Success DTO containing a list of `TripSummary` items.
+- DTO field rules:
+  - For `PUBLISHED` and `CANCELED` trips: omit `draftVisibility`.
+  - For `DRAFT` trips: include `draftVisibility`.
+  - For `DRAFT` and `CANCELED` trips: omit `attendingRigs`.
 
 ---
 
 ## API Notes
-- Suggested endpoint: `GET /trips`
-- Prefer returning a stable DTO shape; avoid leaking internal persistence fields.
+- Suggested endpoints:
+  - `GET /trips` — Variant 1 (published + canceled trips)
+  - `GET /trips/drafts` — Variant 2 (draft trips where caller is an organizer)
+- Prefer returning a stable DTO shape; avoid leaking internal persistence fields (e.g., creation timestamps used for sorting).
 - Read-only: safe and cacheable (where appropriate).
 
 ---
