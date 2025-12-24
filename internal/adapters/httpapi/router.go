@@ -14,7 +14,7 @@ import (
 // This is intentionally a thin adapter:
 // - the generated OpenAPI layer handles request decoding + validation
 // - this package wires routes/middleware and delegates to a ServerInterface implementation
-func NewRouter(si oas.ServerInterface) http.Handler {
+func NewRouter(ssi oas.StrictServerInterface) http.Handler {
 	r := chi.NewRouter()
 
 	// Baseline production-safe middleware (minimal but useful).
@@ -28,7 +28,10 @@ func NewRouter(si oas.ServerInterface) http.Handler {
 		_, _ = w.Write([]byte("ok"))
 	})
 
-	_ = oas.HandlerFromMux(si, r)
+	// Strict handler wiring:
+	// - app/adapter implements `oas.StrictServerInterface`
+	// - generated strict handler adapts it to the legacy `oas.ServerInterface`
+	_ = oas.HandlerFromMux(oas.NewStrictHandler(ssi, nil), r)
 	return r
 }
 

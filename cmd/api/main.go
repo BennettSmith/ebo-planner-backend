@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"eastbay-overland-rally-planner/internal/adapters/httpapi"
-	"eastbay-overland-rally-planner/internal/adapters/httpapi/oas"
 )
 
 func main() {
 	port := getenv("PORT", "8080")
 
-	handler := httpapi.NewRouter(oas.Unimplemented{})
+	// Temporary strict-server stub (we'll swap this out once app services exist).
+	handler := httpapi.NewRouter(httpapi.StrictUnimplemented{})
 
 	srv := &http.Server{
 		Addr:              ":" + port,

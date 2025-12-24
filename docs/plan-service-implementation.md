@@ -73,7 +73,7 @@ We’ll keep OpenAPI-generated DTOs isolated and translate them at the edges.
 
 We will treat `openapi.yaml` as the source of truth.
 
-- [ ] **Switch generation to strict server interfaces**
+- [x] **Switch generation to strict server interfaces**
   - Update `Makefile` `gen-openapi` to generate strict server code (and regenerate).
   - Update `internal/adapters/httpapi` router wiring to use the strict handler wiring provided by `oapi-codegen`.
 

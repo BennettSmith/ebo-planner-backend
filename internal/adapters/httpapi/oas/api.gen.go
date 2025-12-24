@@ -5,12 +5,14 @@ package oas
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/oapi-codegen/runtime"
+	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -1491,4 +1493,1608 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 
 	return r
+}
+
+type ConflictJSONResponse ErrorResponse
+
+type InternalErrorJSONResponse ErrorResponse
+
+type NotFoundJSONResponse ErrorResponse
+
+type UnauthorizedJSONResponse ErrorResponse
+
+type UnprocessableEntityJSONResponse ErrorResponse
+
+type ListMembersRequestObject struct {
+	Params ListMembersParams
+}
+
+type ListMembersResponseObject interface {
+	VisitListMembersResponse(w http.ResponseWriter) error
+}
+
+type ListMembers200JSONResponse struct {
+	Members []MemberDirectoryEntry `json:"members"`
+}
+
+func (response ListMembers200JSONResponse) VisitListMembersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListMembers401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListMembers401JSONResponse) VisitListMembersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListMembers500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response ListMembers500JSONResponse) VisitListMembersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateMyMemberRequestObject struct {
+	Body *CreateMyMemberJSONRequestBody
+}
+
+type CreateMyMemberResponseObject interface {
+	VisitCreateMyMemberResponse(w http.ResponseWriter) error
+}
+
+type CreateMyMember201JSONResponse CreateMemberResponse
+
+func (response CreateMyMember201JSONResponse) VisitCreateMyMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateMyMember401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateMyMember401JSONResponse) VisitCreateMyMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateMyMember409JSONResponse ErrorResponse
+
+func (response CreateMyMember409JSONResponse) VisitCreateMyMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateMyMember422JSONResponse struct {
+	UnprocessableEntityJSONResponse
+}
+
+func (response CreateMyMember422JSONResponse) VisitCreateMyMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateMyMember500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response CreateMyMember500JSONResponse) VisitCreateMyMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMyMemberProfileRequestObject struct {
+}
+
+type GetMyMemberProfileResponseObject interface {
+	VisitGetMyMemberProfileResponse(w http.ResponseWriter) error
+}
+
+type GetMyMemberProfile200JSONResponse struct {
+	Member MemberProfile `json:"member"`
+}
+
+func (response GetMyMemberProfile200JSONResponse) VisitGetMyMemberProfileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMyMemberProfile401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetMyMemberProfile401JSONResponse) VisitGetMyMemberProfileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMyMemberProfile404JSONResponse ErrorResponse
+
+func (response GetMyMemberProfile404JSONResponse) VisitGetMyMemberProfileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMyMemberProfile500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response GetMyMemberProfile500JSONResponse) VisitGetMyMemberProfileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMyMemberProfileRequestObject struct {
+	Params UpdateMyMemberProfileParams
+	Body   *UpdateMyMemberProfileJSONRequestBody
+}
+
+type UpdateMyMemberProfileResponseObject interface {
+	VisitUpdateMyMemberProfileResponse(w http.ResponseWriter) error
+}
+
+type UpdateMyMemberProfile200JSONResponse UpdateMyMemberProfileResponse
+
+func (response UpdateMyMemberProfile200JSONResponse) VisitUpdateMyMemberProfileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMyMemberProfile401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateMyMemberProfile401JSONResponse) VisitUpdateMyMemberProfileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMyMemberProfile404JSONResponse ErrorResponse
+
+func (response UpdateMyMemberProfile404JSONResponse) VisitUpdateMyMemberProfileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMyMemberProfile409JSONResponse struct{ ConflictJSONResponse }
+
+func (response UpdateMyMemberProfile409JSONResponse) VisitUpdateMyMemberProfileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMyMemberProfile422JSONResponse struct {
+	UnprocessableEntityJSONResponse
+}
+
+func (response UpdateMyMemberProfile422JSONResponse) VisitUpdateMyMemberProfileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMyMemberProfile500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response UpdateMyMemberProfile500JSONResponse) VisitUpdateMyMemberProfileResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SearchMembersRequestObject struct {
+	Params SearchMembersParams
+}
+
+type SearchMembersResponseObject interface {
+	VisitSearchMembersResponse(w http.ResponseWriter) error
+}
+
+type SearchMembers200JSONResponse struct {
+	Members []MemberDirectoryEntry `json:"members"`
+}
+
+func (response SearchMembers200JSONResponse) VisitSearchMembersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SearchMembers401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response SearchMembers401JSONResponse) VisitSearchMembersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SearchMembers422JSONResponse struct {
+	UnprocessableEntityJSONResponse
+}
+
+func (response SearchMembers422JSONResponse) VisitSearchMembersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SearchMembers500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response SearchMembers500JSONResponse) VisitSearchMembersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListVisibleTripsForMemberRequestObject struct {
+}
+
+type ListVisibleTripsForMemberResponseObject interface {
+	VisitListVisibleTripsForMemberResponse(w http.ResponseWriter) error
+}
+
+type ListVisibleTripsForMember200JSONResponse struct {
+	Trips []TripSummary `json:"trips"`
+}
+
+func (response ListVisibleTripsForMember200JSONResponse) VisitListVisibleTripsForMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListVisibleTripsForMember401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListVisibleTripsForMember401JSONResponse) VisitListVisibleTripsForMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListVisibleTripsForMember500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response ListVisibleTripsForMember500JSONResponse) VisitListVisibleTripsForMemberResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateTripDraftRequestObject struct {
+	Params CreateTripDraftParams
+	Body   *CreateTripDraftJSONRequestBody
+}
+
+type CreateTripDraftResponseObject interface {
+	VisitCreateTripDraftResponse(w http.ResponseWriter) error
+}
+
+type CreateTripDraft201JSONResponse CreateTripDraftResponse
+
+func (response CreateTripDraft201JSONResponse) VisitCreateTripDraftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateTripDraft401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateTripDraft401JSONResponse) VisitCreateTripDraftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateTripDraft409JSONResponse struct{ ConflictJSONResponse }
+
+func (response CreateTripDraft409JSONResponse) VisitCreateTripDraftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateTripDraft422JSONResponse struct {
+	UnprocessableEntityJSONResponse
+}
+
+func (response CreateTripDraft422JSONResponse) VisitCreateTripDraftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateTripDraft500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response CreateTripDraft500JSONResponse) VisitCreateTripDraftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListMyDraftTripsRequestObject struct {
+}
+
+type ListMyDraftTripsResponseObject interface {
+	VisitListMyDraftTripsResponse(w http.ResponseWriter) error
+}
+
+type ListMyDraftTrips200JSONResponse struct {
+	Trips []TripSummary `json:"trips"`
+}
+
+func (response ListMyDraftTrips200JSONResponse) VisitListMyDraftTripsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListMyDraftTrips401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListMyDraftTrips401JSONResponse) VisitListMyDraftTripsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListMyDraftTrips500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response ListMyDraftTrips500JSONResponse) VisitListMyDraftTripsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTripDetailsRequestObject struct {
+	TripId TripId `json:"tripId"`
+}
+
+type GetTripDetailsResponseObject interface {
+	VisitGetTripDetailsResponse(w http.ResponseWriter) error
+}
+
+type GetTripDetails200JSONResponse TripResponse
+
+func (response GetTripDetails200JSONResponse) VisitGetTripDetailsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTripDetails401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetTripDetails401JSONResponse) VisitGetTripDetailsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTripDetails404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetTripDetails404JSONResponse) VisitGetTripDetailsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTripDetails500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response GetTripDetails500JSONResponse) VisitGetTripDetailsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateTripRequestObject struct {
+	TripId TripId `json:"tripId"`
+	Params UpdateTripParams
+	Body   *UpdateTripJSONRequestBody
+}
+
+type UpdateTripResponseObject interface {
+	VisitUpdateTripResponse(w http.ResponseWriter) error
+}
+
+type UpdateTrip200JSONResponse TripResponse
+
+func (response UpdateTrip200JSONResponse) VisitUpdateTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateTrip401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateTrip401JSONResponse) VisitUpdateTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateTrip404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UpdateTrip404JSONResponse) VisitUpdateTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateTrip409JSONResponse struct{ ConflictJSONResponse }
+
+func (response UpdateTrip409JSONResponse) VisitUpdateTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateTrip422JSONResponse struct {
+	UnprocessableEntityJSONResponse
+}
+
+func (response UpdateTrip422JSONResponse) VisitUpdateTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateTrip500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response UpdateTrip500JSONResponse) VisitUpdateTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CancelTripRequestObject struct {
+	TripId TripId `json:"tripId"`
+	Params CancelTripParams
+}
+
+type CancelTripResponseObject interface {
+	VisitCancelTripResponse(w http.ResponseWriter) error
+}
+
+type CancelTrip200JSONResponse TripResponse
+
+func (response CancelTrip200JSONResponse) VisitCancelTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CancelTrip401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CancelTrip401JSONResponse) VisitCancelTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CancelTrip404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response CancelTrip404JSONResponse) VisitCancelTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CancelTrip409JSONResponse struct{ ConflictJSONResponse }
+
+func (response CancelTrip409JSONResponse) VisitCancelTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CancelTrip422JSONResponse struct {
+	UnprocessableEntityJSONResponse
+}
+
+func (response CancelTrip422JSONResponse) VisitCancelTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CancelTrip500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response CancelTrip500JSONResponse) VisitCancelTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetTripDraftVisibilityRequestObject struct {
+	TripId TripId `json:"tripId"`
+	Params SetTripDraftVisibilityParams
+	Body   *SetTripDraftVisibilityJSONRequestBody
+}
+
+type SetTripDraftVisibilityResponseObject interface {
+	VisitSetTripDraftVisibilityResponse(w http.ResponseWriter) error
+}
+
+type SetTripDraftVisibility200JSONResponse TripResponse
+
+func (response SetTripDraftVisibility200JSONResponse) VisitSetTripDraftVisibilityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetTripDraftVisibility401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response SetTripDraftVisibility401JSONResponse) VisitSetTripDraftVisibilityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetTripDraftVisibility404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response SetTripDraftVisibility404JSONResponse) VisitSetTripDraftVisibilityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetTripDraftVisibility409JSONResponse struct{ ConflictJSONResponse }
+
+func (response SetTripDraftVisibility409JSONResponse) VisitSetTripDraftVisibilityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetTripDraftVisibility422JSONResponse struct {
+	UnprocessableEntityJSONResponse
+}
+
+func (response SetTripDraftVisibility422JSONResponse) VisitSetTripDraftVisibilityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetTripDraftVisibility500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response SetTripDraftVisibility500JSONResponse) VisitSetTripDraftVisibilityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddTripOrganizerRequestObject struct {
+	TripId TripId `json:"tripId"`
+	Params AddTripOrganizerParams
+	Body   *AddTripOrganizerJSONRequestBody
+}
+
+type AddTripOrganizerResponseObject interface {
+	VisitAddTripOrganizerResponse(w http.ResponseWriter) error
+}
+
+type AddTripOrganizer200JSONResponse TripResponse
+
+func (response AddTripOrganizer200JSONResponse) VisitAddTripOrganizerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddTripOrganizer401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response AddTripOrganizer401JSONResponse) VisitAddTripOrganizerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddTripOrganizer404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response AddTripOrganizer404JSONResponse) VisitAddTripOrganizerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddTripOrganizer409JSONResponse struct{ ConflictJSONResponse }
+
+func (response AddTripOrganizer409JSONResponse) VisitAddTripOrganizerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddTripOrganizer422JSONResponse struct {
+	UnprocessableEntityJSONResponse
+}
+
+func (response AddTripOrganizer422JSONResponse) VisitAddTripOrganizerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddTripOrganizer500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response AddTripOrganizer500JSONResponse) VisitAddTripOrganizerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveTripOrganizerRequestObject struct {
+	TripId   TripId   `json:"tripId"`
+	MemberId MemberId `json:"memberId"`
+	Params   RemoveTripOrganizerParams
+}
+
+type RemoveTripOrganizerResponseObject interface {
+	VisitRemoveTripOrganizerResponse(w http.ResponseWriter) error
+}
+
+type RemoveTripOrganizer200JSONResponse TripResponse
+
+func (response RemoveTripOrganizer200JSONResponse) VisitRemoveTripOrganizerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveTripOrganizer401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response RemoveTripOrganizer401JSONResponse) VisitRemoveTripOrganizerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveTripOrganizer404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response RemoveTripOrganizer404JSONResponse) VisitRemoveTripOrganizerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveTripOrganizer409JSONResponse struct{ ConflictJSONResponse }
+
+func (response RemoveTripOrganizer409JSONResponse) VisitRemoveTripOrganizerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveTripOrganizer422JSONResponse struct {
+	UnprocessableEntityJSONResponse
+}
+
+func (response RemoveTripOrganizer422JSONResponse) VisitRemoveTripOrganizerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveTripOrganizer500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response RemoveTripOrganizer500JSONResponse) VisitRemoveTripOrganizerResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PublishTripRequestObject struct {
+	TripId TripId `json:"tripId"`
+}
+
+type PublishTripResponseObject interface {
+	VisitPublishTripResponse(w http.ResponseWriter) error
+}
+
+type PublishTrip200JSONResponse PublishTripResponse
+
+func (response PublishTrip200JSONResponse) VisitPublishTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PublishTrip401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PublishTrip401JSONResponse) VisitPublishTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PublishTrip404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PublishTrip404JSONResponse) VisitPublishTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PublishTrip409JSONResponse struct{ ConflictJSONResponse }
+
+func (response PublishTrip409JSONResponse) VisitPublishTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PublishTrip422JSONResponse struct {
+	UnprocessableEntityJSONResponse
+}
+
+func (response PublishTrip422JSONResponse) VisitPublishTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PublishTrip500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response PublishTrip500JSONResponse) VisitPublishTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetMyRSVPRequestObject struct {
+	TripId TripId `json:"tripId"`
+	Params SetMyRSVPParams
+	Body   *SetMyRSVPJSONRequestBody
+}
+
+type SetMyRSVPResponseObject interface {
+	VisitSetMyRSVPResponse(w http.ResponseWriter) error
+}
+
+type SetMyRSVP200JSONResponse SetMyRSVPResponse
+
+func (response SetMyRSVP200JSONResponse) VisitSetMyRSVPResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetMyRSVP401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response SetMyRSVP401JSONResponse) VisitSetMyRSVPResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetMyRSVP404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response SetMyRSVP404JSONResponse) VisitSetMyRSVPResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetMyRSVP409JSONResponse struct{ ConflictJSONResponse }
+
+func (response SetMyRSVP409JSONResponse) VisitSetMyRSVPResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetMyRSVP422JSONResponse struct {
+	UnprocessableEntityJSONResponse
+}
+
+func (response SetMyRSVP422JSONResponse) VisitSetMyRSVPResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type SetMyRSVP500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response SetMyRSVP500JSONResponse) VisitSetMyRSVPResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMyRSVPForTripRequestObject struct {
+	TripId TripId `json:"tripId"`
+}
+
+type GetMyRSVPForTripResponseObject interface {
+	VisitGetMyRSVPForTripResponse(w http.ResponseWriter) error
+}
+
+type GetMyRSVPForTrip200JSONResponse struct {
+	MyRsvp MyRSVP `json:"myRsvp"`
+}
+
+func (response GetMyRSVPForTrip200JSONResponse) VisitGetMyRSVPForTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMyRSVPForTrip401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetMyRSVPForTrip401JSONResponse) VisitGetMyRSVPForTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMyRSVPForTrip404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetMyRSVPForTrip404JSONResponse) VisitGetMyRSVPForTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMyRSVPForTrip409JSONResponse struct{ ConflictJSONResponse }
+
+func (response GetMyRSVPForTrip409JSONResponse) VisitGetMyRSVPForTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMyRSVPForTrip500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response GetMyRSVPForTrip500JSONResponse) VisitGetMyRSVPForTripResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTripRSVPSummaryRequestObject struct {
+	TripId TripId `json:"tripId"`
+}
+
+type GetTripRSVPSummaryResponseObject interface {
+	VisitGetTripRSVPSummaryResponse(w http.ResponseWriter) error
+}
+
+type GetTripRSVPSummary200JSONResponse struct {
+	RsvpSummary TripRSVPSummary `json:"rsvpSummary"`
+}
+
+func (response GetTripRSVPSummary200JSONResponse) VisitGetTripRSVPSummaryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTripRSVPSummary401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetTripRSVPSummary401JSONResponse) VisitGetTripRSVPSummaryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTripRSVPSummary404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetTripRSVPSummary404JSONResponse) VisitGetTripRSVPSummaryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTripRSVPSummary409JSONResponse struct{ ConflictJSONResponse }
+
+func (response GetTripRSVPSummary409JSONResponse) VisitGetTripRSVPSummaryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTripRSVPSummary500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response GetTripRSVPSummary500JSONResponse) VisitGetTripRSVPSummaryResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+// StrictServerInterface represents all server handlers.
+type StrictServerInterface interface {
+	// List members (minimal directory)
+	// (GET /members)
+	ListMembers(ctx context.Context, request ListMembersRequestObject) (ListMembersResponseObject, error)
+	// Create my member profile (self-provision membership)
+	// (POST /members)
+	CreateMyMember(ctx context.Context, request CreateMyMemberRequestObject) (CreateMyMemberResponseObject, error)
+	// Get my member profile (resolved from JWT subject)
+	// (GET /members/me)
+	GetMyMemberProfile(ctx context.Context, request GetMyMemberProfileRequestObject) (GetMyMemberProfileResponseObject, error)
+	// Update my member profile
+	// (PATCH /members/me)
+	UpdateMyMemberProfile(ctx context.Context, request UpdateMyMemberProfileRequestObject) (UpdateMyMemberProfileResponseObject, error)
+	// Search members by display name
+	// (GET /members/search)
+	SearchMembers(ctx context.Context, request SearchMembersRequestObject) (SearchMembersResponseObject, error)
+	// List published + canceled trips for the authenticated member
+	// (GET /trips)
+	ListVisibleTripsForMember(ctx context.Context, request ListVisibleTripsForMemberRequestObject) (ListVisibleTripsForMemberResponseObject, error)
+	// Create a trip draft
+	// (POST /trips)
+	CreateTripDraft(ctx context.Context, request CreateTripDraftRequestObject) (CreateTripDraftResponseObject, error)
+	// List draft trips visible to the authenticated member
+	// (GET /trips/drafts)
+	ListMyDraftTrips(ctx context.Context, request ListMyDraftTripsRequestObject) (ListMyDraftTripsResponseObject, error)
+	// Get trip details (visible to member)
+	// (GET /trips/{tripId})
+	GetTripDetails(ctx context.Context, request GetTripDetailsRequestObject) (GetTripDetailsResponseObject, error)
+	// Update a trip (draft or published)
+	// (PATCH /trips/{tripId})
+	UpdateTrip(ctx context.Context, request UpdateTripRequestObject) (UpdateTripResponseObject, error)
+	// Cancel a trip (idempotent)
+	// (POST /trips/{tripId}/cancel)
+	CancelTrip(ctx context.Context, request CancelTripRequestObject) (CancelTripResponseObject, error)
+	// Set draft visibility for a trip draft
+	// (PUT /trips/{tripId}/draft-visibility)
+	SetTripDraftVisibility(ctx context.Context, request SetTripDraftVisibilityRequestObject) (SetTripDraftVisibilityResponseObject, error)
+	// Add an organizer to a trip
+	// (POST /trips/{tripId}/organizers)
+	AddTripOrganizer(ctx context.Context, request AddTripOrganizerRequestObject) (AddTripOrganizerResponseObject, error)
+	// Remove an organizer from a trip
+	// (DELETE /trips/{tripId}/organizers/{memberId})
+	RemoveTripOrganizer(ctx context.Context, request RemoveTripOrganizerRequestObject) (RemoveTripOrganizerResponseObject, error)
+	// Publish a trip (idempotent)
+	// (POST /trips/{tripId}/publish)
+	PublishTrip(ctx context.Context, request PublishTripRequestObject) (PublishTripResponseObject, error)
+	// Set my RSVP for a published trip
+	// (PUT /trips/{tripId}/rsvp)
+	SetMyRSVP(ctx context.Context, request SetMyRSVPRequestObject) (SetMyRSVPResponseObject, error)
+	// Get my RSVP for a trip
+	// (GET /trips/{tripId}/rsvp/me)
+	GetMyRSVPForTrip(ctx context.Context, request GetMyRSVPForTripRequestObject) (GetMyRSVPForTripResponseObject, error)
+	// Get RSVP summary for a trip
+	// (GET /trips/{tripId}/rsvps)
+	GetTripRSVPSummary(ctx context.Context, request GetTripRSVPSummaryRequestObject) (GetTripRSVPSummaryResponseObject, error)
+}
+
+type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
+type StrictMiddlewareFunc = strictnethttp.StrictHTTPMiddlewareFunc
+
+type StrictHTTPServerOptions struct {
+	RequestErrorHandlerFunc  func(w http.ResponseWriter, r *http.Request, err error)
+	ResponseErrorHandlerFunc func(w http.ResponseWriter, r *http.Request, err error)
+}
+
+func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
+	return &strictHandler{ssi: ssi, middlewares: middlewares, options: StrictHTTPServerOptions{
+		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		},
+		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		},
+	}}
+}
+
+func NewStrictHandlerWithOptions(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc, options StrictHTTPServerOptions) ServerInterface {
+	return &strictHandler{ssi: ssi, middlewares: middlewares, options: options}
+}
+
+type strictHandler struct {
+	ssi         StrictServerInterface
+	middlewares []StrictMiddlewareFunc
+	options     StrictHTTPServerOptions
+}
+
+// ListMembers operation middleware
+func (sh *strictHandler) ListMembers(w http.ResponseWriter, r *http.Request, params ListMembersParams) {
+	var request ListMembersRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListMembers(ctx, request.(ListMembersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListMembers")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListMembersResponseObject); ok {
+		if err := validResponse.VisitListMembersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateMyMember operation middleware
+func (sh *strictHandler) CreateMyMember(w http.ResponseWriter, r *http.Request) {
+	var request CreateMyMemberRequestObject
+
+	var body CreateMyMemberJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateMyMember(ctx, request.(CreateMyMemberRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateMyMember")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateMyMemberResponseObject); ok {
+		if err := validResponse.VisitCreateMyMemberResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMyMemberProfile operation middleware
+func (sh *strictHandler) GetMyMemberProfile(w http.ResponseWriter, r *http.Request) {
+	var request GetMyMemberProfileRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMyMemberProfile(ctx, request.(GetMyMemberProfileRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMyMemberProfile")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMyMemberProfileResponseObject); ok {
+		if err := validResponse.VisitGetMyMemberProfileResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateMyMemberProfile operation middleware
+func (sh *strictHandler) UpdateMyMemberProfile(w http.ResponseWriter, r *http.Request, params UpdateMyMemberProfileParams) {
+	var request UpdateMyMemberProfileRequestObject
+
+	request.Params = params
+
+	var body UpdateMyMemberProfileJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateMyMemberProfile(ctx, request.(UpdateMyMemberProfileRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateMyMemberProfile")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateMyMemberProfileResponseObject); ok {
+		if err := validResponse.VisitUpdateMyMemberProfileResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SearchMembers operation middleware
+func (sh *strictHandler) SearchMembers(w http.ResponseWriter, r *http.Request, params SearchMembersParams) {
+	var request SearchMembersRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SearchMembers(ctx, request.(SearchMembersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SearchMembers")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SearchMembersResponseObject); ok {
+		if err := validResponse.VisitSearchMembersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListVisibleTripsForMember operation middleware
+func (sh *strictHandler) ListVisibleTripsForMember(w http.ResponseWriter, r *http.Request) {
+	var request ListVisibleTripsForMemberRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListVisibleTripsForMember(ctx, request.(ListVisibleTripsForMemberRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListVisibleTripsForMember")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListVisibleTripsForMemberResponseObject); ok {
+		if err := validResponse.VisitListVisibleTripsForMemberResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateTripDraft operation middleware
+func (sh *strictHandler) CreateTripDraft(w http.ResponseWriter, r *http.Request, params CreateTripDraftParams) {
+	var request CreateTripDraftRequestObject
+
+	request.Params = params
+
+	var body CreateTripDraftJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateTripDraft(ctx, request.(CreateTripDraftRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateTripDraft")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateTripDraftResponseObject); ok {
+		if err := validResponse.VisitCreateTripDraftResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListMyDraftTrips operation middleware
+func (sh *strictHandler) ListMyDraftTrips(w http.ResponseWriter, r *http.Request) {
+	var request ListMyDraftTripsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListMyDraftTrips(ctx, request.(ListMyDraftTripsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListMyDraftTrips")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListMyDraftTripsResponseObject); ok {
+		if err := validResponse.VisitListMyDraftTripsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetTripDetails operation middleware
+func (sh *strictHandler) GetTripDetails(w http.ResponseWriter, r *http.Request, tripId TripId) {
+	var request GetTripDetailsRequestObject
+
+	request.TripId = tripId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetTripDetails(ctx, request.(GetTripDetailsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetTripDetails")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetTripDetailsResponseObject); ok {
+		if err := validResponse.VisitGetTripDetailsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateTrip operation middleware
+func (sh *strictHandler) UpdateTrip(w http.ResponseWriter, r *http.Request, tripId TripId, params UpdateTripParams) {
+	var request UpdateTripRequestObject
+
+	request.TripId = tripId
+	request.Params = params
+
+	var body UpdateTripJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateTrip(ctx, request.(UpdateTripRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateTrip")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateTripResponseObject); ok {
+		if err := validResponse.VisitUpdateTripResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CancelTrip operation middleware
+func (sh *strictHandler) CancelTrip(w http.ResponseWriter, r *http.Request, tripId TripId, params CancelTripParams) {
+	var request CancelTripRequestObject
+
+	request.TripId = tripId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CancelTrip(ctx, request.(CancelTripRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CancelTrip")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CancelTripResponseObject); ok {
+		if err := validResponse.VisitCancelTripResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SetTripDraftVisibility operation middleware
+func (sh *strictHandler) SetTripDraftVisibility(w http.ResponseWriter, r *http.Request, tripId TripId, params SetTripDraftVisibilityParams) {
+	var request SetTripDraftVisibilityRequestObject
+
+	request.TripId = tripId
+	request.Params = params
+
+	var body SetTripDraftVisibilityJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SetTripDraftVisibility(ctx, request.(SetTripDraftVisibilityRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SetTripDraftVisibility")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SetTripDraftVisibilityResponseObject); ok {
+		if err := validResponse.VisitSetTripDraftVisibilityResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AddTripOrganizer operation middleware
+func (sh *strictHandler) AddTripOrganizer(w http.ResponseWriter, r *http.Request, tripId TripId, params AddTripOrganizerParams) {
+	var request AddTripOrganizerRequestObject
+
+	request.TripId = tripId
+	request.Params = params
+
+	var body AddTripOrganizerJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AddTripOrganizer(ctx, request.(AddTripOrganizerRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AddTripOrganizer")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AddTripOrganizerResponseObject); ok {
+		if err := validResponse.VisitAddTripOrganizerResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RemoveTripOrganizer operation middleware
+func (sh *strictHandler) RemoveTripOrganizer(w http.ResponseWriter, r *http.Request, tripId TripId, memberId MemberId, params RemoveTripOrganizerParams) {
+	var request RemoveTripOrganizerRequestObject
+
+	request.TripId = tripId
+	request.MemberId = memberId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RemoveTripOrganizer(ctx, request.(RemoveTripOrganizerRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RemoveTripOrganizer")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RemoveTripOrganizerResponseObject); ok {
+		if err := validResponse.VisitRemoveTripOrganizerResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PublishTrip operation middleware
+func (sh *strictHandler) PublishTrip(w http.ResponseWriter, r *http.Request, tripId TripId) {
+	var request PublishTripRequestObject
+
+	request.TripId = tripId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PublishTrip(ctx, request.(PublishTripRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PublishTrip")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PublishTripResponseObject); ok {
+		if err := validResponse.VisitPublishTripResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SetMyRSVP operation middleware
+func (sh *strictHandler) SetMyRSVP(w http.ResponseWriter, r *http.Request, tripId TripId, params SetMyRSVPParams) {
+	var request SetMyRSVPRequestObject
+
+	request.TripId = tripId
+	request.Params = params
+
+	var body SetMyRSVPJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SetMyRSVP(ctx, request.(SetMyRSVPRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SetMyRSVP")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SetMyRSVPResponseObject); ok {
+		if err := validResponse.VisitSetMyRSVPResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMyRSVPForTrip operation middleware
+func (sh *strictHandler) GetMyRSVPForTrip(w http.ResponseWriter, r *http.Request, tripId TripId) {
+	var request GetMyRSVPForTripRequestObject
+
+	request.TripId = tripId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMyRSVPForTrip(ctx, request.(GetMyRSVPForTripRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMyRSVPForTrip")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMyRSVPForTripResponseObject); ok {
+		if err := validResponse.VisitGetMyRSVPForTripResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetTripRSVPSummary operation middleware
+func (sh *strictHandler) GetTripRSVPSummary(w http.ResponseWriter, r *http.Request, tripId TripId) {
+	var request GetTripRSVPSummaryRequestObject
+
+	request.TripId = tripId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetTripRSVPSummary(ctx, request.(GetTripRSVPSummaryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetTripRSVPSummary")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetTripRSVPSummaryResponseObject); ok {
+		if err := validResponse.VisitGetTripRSVPSummaryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }
