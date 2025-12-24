@@ -441,8 +441,6 @@ paths:
                 $ref: '#/components/schemas/CreateMemberResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '409':
           description: Member already exists for the authenticated subject
           content:
@@ -622,12 +620,6 @@ components:
   responses:
     Unauthorized:
       description: Unauthorized
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Forbidden:
-      description: Forbidden
       content:
         application/json:
           schema:
@@ -1150,6 +1142,8 @@ components:
       properties:
         displayName:
           type: string
+          pattern: '.*\\S.*'
+          description: Display name. Server trims leading/trailing whitespace and collapses internal whitespace runs before persisting.
         email:
           type: string
           format: email
