@@ -1,0 +1,29 @@
+## Multi-stage build for the devjwt helper service (JWKS + token minting).
+
+FROM --platform=$BUILDPLATFORM golang:1.23-alpine AS builder
+
+WORKDIR /src
+RUN apk add --no-cache ca-certificates git
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+ARG TARGETOS
+ARG TARGETARCH
+
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -trimpath -ldflags="-s -w" -o /out/devjwt ./cmd/devjwt
+
+FROM gcr.io/distroless/static-debian12:nonroot
+
+COPY --from=builder /out/devjwt /devjwt
+
+EXPOSE 5556
+
+USER nonroot:nonroot
+
+ENTRYPOINT ["/devjwt"]
+
+

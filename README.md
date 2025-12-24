@@ -40,6 +40,118 @@ make up
   - Requests authenticate via `X-Debug-Subject: <some-subject>`
   - The API still enforces “member must be provisioned” for many endpoints, so you’ll typically create a member first.
 
+- **JWT auth options (real Bearer tokens)**: set `AUTH_MODE=jwt` and provide `JWT_ISSUER`, `JWT_AUDIENCE`, and `JWT_JWKS_URL`.
+
+#### Option A: local `devjwt` (fastest, no external IdP)
+
+This repo includes a tiny `devjwt` service that:
+- serves JWKS at `/.well-known/jwks.json`
+- mints RS256 tokens at `/token?sub=...`
+
+Start the stack in JWT mode (this turns on real Bearer verification in the API):
+
+```bash
+make up AUTH_MODE=jwt
+```
+
+Mint a token (from host) and call the API:
+
+```bash
+TOKEN="$(curl -sS 'http://localhost:5556/token?sub=dev%7Calice' | sed -n 's/.*\"token\":\"\\([^\"]*\\)\".*/\\1/p')"
+curl -sS http://localhost:8081/members -H "Authorization: Bearer $TOKEN"
+```
+
+If you want to override the expected issuer/audience/JWKS in docker compose:
+
+```bash
+make up AUTH_MODE=jwt \
+  JWT_ISSUER='http://devjwt:5556' \
+  JWT_AUDIENCE='east-bay-overland' \
+  JWT_JWKS_URL='http://devjwt:5556/.well-known/jwks.json'
+```
+
+#### Option B: Keycloak (more realistic)
+
+You can run Keycloak locally via docker compose (recommended) or run it elsewhere (Docker Desktop, k8s, hosted).
+
+##### Run Keycloak locally (docker compose)
+
+This repo includes a `keycloak` compose service (disabled by default) and a small realm import:
+- Realm: `ebo`
+- Client: `ebo-api` (direct access grants enabled)
+- User: `alice` / password: `alice`
+
+Start the stack with Keycloak + JWT auth:
+
+```bash
+make up-keycloak
+```
+
+Keycloak Admin UI:
+
+```bash
+make keycloak-ui
+```
+
+Then open `http://localhost:8082/admin` and log in as `admin` / `admin`.
+
+Get a token from Keycloak (password grant) and call the API:
+
+```bash
+TOKEN="$(make token-keycloak)"
+
+# First-time: provision a member for this subject (sub comes from the JWT)
+curl -sS -X POST http://localhost:8081/members \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"displayName":"Alice","email":"alice@example.com"}'
+
+curl -sS http://localhost:8081/members -H "Authorization: Bearer $TOKEN"
+```
+
+If Keycloak is still starting, tail logs:
+
+```bash
+make logs-keycloak
+```
+
+##### Point the API at an existing Keycloak
+
+If you run Keycloak elsewhere, point the API at it:
+
+- `JWT_ISSUER`: Keycloak realm issuer, typically `http://localhost:8082/realms/<realm>`
+- `JWT_JWKS_URL`: typically `http://localhost:8082/realms/<realm>/protocol/openid-connect/certs`
+- `JWT_AUDIENCE`: whatever your token’s `aud` contains for this API (configure via client/audience settings)
+
+Example (Keycloak on host port `8082`, realm `ebo`, client `ebo-api`):
+
+```bash
+make up AUTH_MODE=jwt \
+  JWT_ISSUER='http://host.docker.internal:8082/realms/ebo' \
+  JWT_JWKS_URL='http://host.docker.internal:8082/realms/ebo/protocol/openid-connect/certs' \
+  JWT_AUDIENCE='ebo-api'
+```
+
+Then fetch a token (password grant shown for quick local testing; use whichever grant you prefer):
+
+```bash
+TOKEN="$(
+  curl -sS -X POST 'http://localhost:8082/realms/ebo/protocol/openid-connect/token' \
+    -H 'Content-Type: application/x-www-form-urlencoded' \
+    --data-urlencode 'grant_type=password' \
+    --data-urlencode 'client_id=ebo-api' \
+    --data-urlencode 'username=alice' \
+    --data-urlencode 'password=alice' \
+  | sed -n 's/.*\"access_token\":\"\\([^\"]*\\)\".*/\\1/p'
+)"
+curl -sS http://localhost:8081/members -H "Authorization: Bearer $TOKEN"
+```
+
+Notes:
+- The API’s verifier currently requires **RS256** and a JWT header `kid`.
+- Ensure your token’s `iss` matches `JWT_ISSUER` exactly (including scheme/host/port).
+- If you see `aud mismatch`, adjust `JWT_AUDIENCE` or Keycloak client/audience mapper so the token includes the expected audience.
+
 - **If you get “port 5432 is already allocated”** (another Postgres is already using it):
 
 ```bash

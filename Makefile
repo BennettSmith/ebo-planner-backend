@@ -27,9 +27,29 @@ COMPOSE ?= docker compose
 DB_SERVICE ?= db
 API_SERVICE ?= api
 PROXY_SERVICE ?= caddy
+KEYCLOAK_SERVICE ?= keycloak
 
 # For building/running the API image outside compose (Docker Desktop-friendly).
 API_IMAGE ?= ebo-api:local
+
+# Auth mode for local dev:
+# - dev: header-based (X-Debug-Subject)
+# - jwt: Authorization: Bearer <JWT> verified using JWKS
+AUTH_MODE ?= dev
+DEV_SUBJECT ?= dev|local
+DEV_ISSUER ?= dev
+JWT_ISSUER ?= http://devjwt:5556
+JWT_AUDIENCE ?= east-bay-overland
+JWT_JWKS_URL ?= http://devjwt:5556/.well-known/jwks.json
+JWT_KID ?= dev-kid-1
+JWT_TTL ?= 30m
+
+# Keycloak token helper defaults (used by token-keycloak target)
+KEYCLOAK_BASE_URL ?= http://localhost:8082
+KEYCLOAK_REALM ?= ebo
+KEYCLOAK_CLIENT_ID ?= ebo-api
+KEYCLOAK_USERNAME ?= alice
+KEYCLOAK_PASSWORD ?= alice
 
 # Connection string for local host access (psql on host)
 DATABASE_URL ?= postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
@@ -39,6 +59,14 @@ export POSTGRES_USER
 export POSTGRES_PASSWORD
 export POSTGRES_DB
 export POSTGRES_PORT
+export AUTH_MODE
+export DEV_SUBJECT
+export DEV_ISSUER
+export JWT_ISSUER
+export JWT_AUDIENCE
+export JWT_JWKS_URL
+export JWT_KID
+export JWT_TTL
 
 # Dev-only seed script (must NOT be included in migrations)
 SEED_FILE ?= ./db/seed/seed_dev_optional.sql
@@ -56,6 +84,10 @@ help:
 	@echo "  logs-api       Tail API logs"
 	@echo "  logs-all       Tail logs for all services"
 	@echo "  rebuild-api    Rebuild the API container image (compose)"
+	@echo "  up-keycloak    Start stack with local Keycloak + AUTH_MODE=jwt (JWT testing)"
+	@echo "  logs-keycloak  Tail Keycloak logs (when running with COMPOSE_PROFILES=keycloak)"
+	@echo "  keycloak-ui    Print Keycloak Admin UI URL + default credentials"
+	@echo "  token-keycloak Print a Keycloak access token (use: TOKEN=$$(make token-keycloak))"
 	@echo "  reset-volumes  Stop stack and delete volumes (destructive; wipes dbdata)"
 	@echo "  psql           Open interactive psql shell (inside container)"
 	@echo "  db-create      Create database (if missing)"
@@ -104,8 +136,42 @@ logs-all:
 rebuild-api:
 	$(COMPOSE) build --no-cache $(API_SERVICE)
 
+.PHONY: up-keycloak
+up-keycloak:
+	COMPOSE_PROFILES=keycloak AUTH_MODE=jwt \
+		JWT_ISSUER='http://localhost:8082/realms/ebo' \
+		JWT_JWKS_URL='http://host.docker.internal:8082/realms/ebo/protocol/openid-connect/certs' \
+		JWT_AUDIENCE='ebo-api' \
+		$(MAKE) up
+
+.PHONY: logs-keycloak
+logs-keycloak:
+	COMPOSE_PROFILES=keycloak $(COMPOSE) logs -f $(KEYCLOAK_SERVICE)
+
+.PHONY: keycloak-ui
+keycloak-ui:
+	@echo "Keycloak Admin UI: http://localhost:8082/admin"
+	@echo "Admin credentials: admin / admin"
+	@echo "Realm: ebo"
+	@echo "Test user: alice / alice"
+
+.PHONY: token-keycloak
+token-keycloak:
+	@command -v jq >/dev/null 2>&1 || (echo "jq is required (brew install jq)"; exit 1)
+	@curl -sS -X POST '$(KEYCLOAK_BASE_URL)/realms/$(KEYCLOAK_REALM)/protocol/openid-connect/token' \
+		-H 'Content-Type: application/x-www-form-urlencoded' \
+		--data-urlencode 'grant_type=password' \
+		--data-urlencode 'client_id=$(KEYCLOAK_CLIENT_ID)' \
+		--data-urlencode 'username=$(KEYCLOAK_USERNAME)' \
+		--data-urlencode 'password=$(KEYCLOAK_PASSWORD)' \
+	| jq -r .access_token
+
 .PHONY: reset-volumes
 reset-volumes:
+	# If optional profile services (like keycloak) are running, they can keep the
+	# compose network in-use. Tear down with the keycloak profile first (no-op if absent),
+	# then do a normal teardown.
+	@COMPOSE_PROFILES=keycloak $(COMPOSE) down -v --remove-orphans || true
 	$(COMPOSE) down -v --remove-orphans
 
 .PHONY: migrate
