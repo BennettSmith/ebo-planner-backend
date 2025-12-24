@@ -58,6 +58,34 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+      - Trip Planning
+      summary: Create a trip draft
+      operationId: createTripDraft
+      parameters:
+      - $ref: '#/components/parameters/RequiredIdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTripDraftRequest'
+      responses:
+        '201':
+          description: Draft created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTripDraftResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /trips/drafts:
     get:
       tags:
@@ -81,36 +109,6 @@ paths:
                 - trips
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalError'
-    post:
-      tags:
-      - Trip Planning
-      summary: Create a trip draft
-      operationId: createTripDraft
-      parameters:
-      - $ref: '#/components/parameters/IdempotencyKey'
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateTripDraftRequest'
-      responses:
-        '201':
-          description: Draft created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateTripDraftResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
         '500':
           $ref: '#/components/responses/InternalError'
   /trips/{tripId}:
@@ -617,6 +615,14 @@ components:
         type: string
         minLength: 8
       description: Optional idempotency key for safely retrying mutating requests.
+    RequiredIdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 8
+      description: Required idempotency key for safely retrying this mutating request.
   responses:
     Unauthorized:
       description: Unauthorized
@@ -918,46 +924,13 @@ components:
     CreateTripDraftRequest:
       type: object
       additionalProperties: false
-      description: All fields optional; drafts may be incomplete.
+      description: Create a draft trip. Drafts are always created with `draftVisibility = PRIVATE`.
       properties:
         name:
           type: string
-          nullable: true
-        description:
-          type: string
-          nullable: true
-        startDate:
-          type: string
-          format: date
-          nullable: true
-        endDate:
-          type: string
-          format: date
-          nullable: true
-        draftVisibility:
-          $ref: '#/components/schemas/DraftVisibility'
-          nullable: true
-        capacityRigs:
-          type: integer
-          minimum: 0
-          nullable: true
-        difficultyText:
-          type: string
-          nullable: true
-        meetingLocation:
-          $ref: '#/components/schemas/Location'
-          nullable: true
-        commsRequirementsText:
-          type: string
-          nullable: true
-        recommendedRequirementsText:
-          type: string
-          nullable: true
-        artifacts:
-          type: array
-          items:
-            $ref: '#/components/schemas/TripArtifact'
-          nullable: true
+          minLength: 1
+      required:
+      - name
     CreateTripDraftResponse:
       type: object
       additionalProperties: false

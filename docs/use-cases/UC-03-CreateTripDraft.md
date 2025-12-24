@@ -16,25 +16,34 @@ Create a new trip in `DRAFT` state. Incomplete data is allowed.
 ---
 
 ## Main Success Flow
-1. Actor submits a create-draft request (optional partial trip fields).
+1. Actor submits a create-draft request with the required title (`name`).
 2. System authenticates the caller.
-3. System creates a new `Trip` with:
+3. System validates inputs (title must be present and non-blank).
+4. System creates a new `Trip` with:
    - `status = DRAFT`
-   - `draftVisibility = PRIVATE` (unless explicitly set to `PUBLIC`)
+   - `draftVisibility = PRIVATE` (always)
    - `created_by_member_id = caller`
-4. System ensures the creator is included as an organizer (initial organizer).
-5. System returns the created trip identifiers/details.
+5. System ensures the creator is included as an organizer (initial organizer).
+6. System returns the created trip identifiers/details.
 
 ---
 
 ## Alternate Flows
-- None.
+A1 — Idempotent Retry (Same Idempotency Key, Same Request)
+- **Condition:** A previous successful create request exists for the same actor and idempotency key with an identical request payload.
+- **Behavior:** System returns the previously created trip (no new trip is created).
+- **Outcome:** Trip returned (idempotent).
+
+A2 — Idempotency Key Reuse With Different Payload
+- **Condition:** A previous request exists for the same actor and idempotency key, but the new request payload differs.
+- **Behavior:** System rejects the request.
+- **Outcome:** `409 Conflict`.
 
 ---
 
 ## Error Conditions
 - `401 Unauthorized` — caller is not authenticated
-- `409 Conflict` — domain invariant violated
+- `409 Conflict` — idempotency key reuse with a different payload (or other invariant violation)
 - `422 Unprocessable Entity` — invalid input values (format/range)
 - `500 Internal Server Error` — unexpected failure
 
@@ -46,7 +55,7 @@ Create a new trip in `DRAFT` state. Incomplete data is allowed.
 
 ## Domain Invariants Enforced
 - Trip status is initialized to `DRAFT`.
-- `draftVisibility` defaults to `PRIVATE` unless explicitly set otherwise.
+- `draftVisibility` is set to `PRIVATE` and cannot be set at create time.
 - `created_by_member_id` is set to the caller and is immutable.
 - At least one organizer must exist; the creator becomes the initial organizer.
 
@@ -60,7 +69,7 @@ Create a new trip in `DRAFT` state. Incomplete data is allowed.
 ## API Notes
 - Suggested endpoint: `POST /trips`
 - Prefer returning a stable DTO shape; avoid leaking internal persistence fields.
-- Mutating: consider idempotency keys where duplicate submissions are plausible.
+- Mutating: **require** an `Idempotency-Key` header to safely handle retries.
 
 ---
 
