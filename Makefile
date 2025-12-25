@@ -88,7 +88,7 @@ help:
 	@echo "  up-keycloak    Start stack with local Keycloak + AUTH_MODE=jwt (JWT testing)"
 	@echo "  logs-keycloak  Tail Keycloak logs (when running with COMPOSE_PROFILES=keycloak)"
 	@echo "  keycloak-ui    Print Keycloak Admin UI URL + default credentials"
-	@echo "  token-keycloak Print a Keycloak access token (use: TOKEN=$$(make token-keycloak))"
+	@echo '  token-keycloak Print a Keycloak access token (use: TOKEN=$$(make token-keycloak))'
 	@echo "  reset-volumes  Stop stack and delete volumes (destructive; wipes dbdata)"
 	@echo "  psql           Open interactive psql shell (inside container)"
 	@echo "  db-create      Create database (if missing)"
@@ -115,7 +115,11 @@ up:
 
 .PHONY: down
 down:
-	$(COMPOSE) down
+	# If optional profile services (like keycloak) are running, they can keep the
+	# compose network in-use. Tear down with the keycloak profile first (no-op if absent),
+	# then do a normal teardown.
+	@COMPOSE_PROFILES=keycloak $(COMPOSE) down --remove-orphans || true
+	$(COMPOSE) down --remove-orphans
 
 .PHONY: logs
 logs:
