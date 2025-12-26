@@ -6,13 +6,6 @@ This repo uses:
 - **golang-migrate** via the `migrate/migrate` image (`migrate` service)
 - A Go API (`api` service) behind Caddy locally (`caddy` service)
 
-## Diagrams
-
-The diagrams + use-case specs live in the spec repo:
-
-- **Domain model (v1)**: `../ebo-planner-spec/docs/diagrams/domain-model.md`
-- **Database schema (v1)**: `../ebo-planner-spec/docs/diagrams/database-schema.md`
-
 ## Local dev (DB + API)
 
 Bring up the database and API (and the local proxy):
