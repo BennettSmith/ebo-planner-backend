@@ -80,6 +80,33 @@ Skipping step (1) is not allowed for externally visible changes.
 
 When opening an implementation PR that changes externally visible behavior, link to the spec change (PR and/or tag) and the relevant use case(s).
 
+## 6.1 Development workflow (mandatory)
+
+### 6.1.1 Branches only
+
+- All work MUST happen on a branch (no direct commits to `main`).
+- Branch names MUST be: `{type}/{slug}`
+  - `{type}` MUST be one of: `chore`, `bug`, `refactor`, `feature`
+  - `{slug}` MUST be a short, lowercase, hyphenated description
+  - Examples:
+    - `feature/trip-publish-handler`
+    - `bug/idempotency-collision`
+    - `refactor/http-adapter-simplify`
+    - `chore/ci-cache-tuning`
+
+### 6.1.2 Pre-flight before PR
+
+- Before creating or updating a PR, you MUST run `make ci` locally and it MUST pass.
+
+### 6.1.3 Pull requests required
+
+- Every change MUST be delivered via a pull request.
+- CI must be green before merge (required checks).
+
+### 6.1.4 Automation via `gh`
+
+- Cursor agents SHOULD use the GitHub CLI (`gh`) to create PRs, set titles/descriptions, and enable auto-merge once checks pass.
+
 ## 7. Versioning & releases
 
 - Service versioning is independent of spec versioning.
