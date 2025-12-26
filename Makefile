@@ -306,3 +306,25 @@ image-run:
 		-e DATABASE_URL='$(DATABASE_URL)' \
 		$(API_IMAGE)
 
+
+# --- Changelog / releasing helpers (modeled after ebo-planner-spec) ---
+.PHONY: changelog-verify changelog-release release-help
+
+changelog-verify:
+	@./scripts/verify_changelog.sh
+	@./scripts/verify_spec_lock.sh
+
+changelog-release:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "ERROR: VERSION is required. Example: make changelog-release VERSION=1.0.0" >&2; \
+		exit 2; \
+	fi
+	@./scripts/release_changelog.sh "$(VERSION)"
+
+release-help:
+	@echo "Service releases:"
+	@echo "  1) Update spec.lock to the spec tag implemented (e.g. v1.2.3)"
+	@echo "  2) Add Unreleased notes in CHANGELOG.md (service/runtime/migrations + Implements spec ...)"
+	@echo "  3) make changelog-release VERSION=1.0.0"
+	@echo "  4) Commit CHANGELOG.md, tag v1.0.0, push tag"
+
