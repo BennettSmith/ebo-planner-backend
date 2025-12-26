@@ -20,6 +20,8 @@ This repo does **not** define the contract. It implements it.
 No implementation change may alter externally observable behavior without
 a corresponding change in the spec repo.
 
+**We practice spec-first development.** All requirements changes — new features, changes to behavior defined by a use case, and API contract changes — **must originate in the spec repo** (then flow into this repo via `spec.lock`).
+
 ## 3. Scope
 
 ### 3.1 Allowed content
@@ -75,6 +77,8 @@ a corresponding change in the spec repo.
 6) Validate via tests
 
 Skipping step (1) is not allowed for externally visible changes.
+
+When opening an implementation PR that changes externally visible behavior, link to the spec change (PR and/or tag) and the relevant use case(s).
 
 ## 7. Versioning & releases
 
