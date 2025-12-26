@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
-	memmemberrepo "eastbay-overland-rally-planner/internal/adapters/memory/memberrepo"
-	memrsvprepo "eastbay-overland-rally-planner/internal/adapters/memory/rsvprepo"
-	memtriprepo "eastbay-overland-rally-planner/internal/adapters/memory/triprepo"
-	"eastbay-overland-rally-planner/internal/app/trips"
-	"eastbay-overland-rally-planner/internal/domain"
-	portmemberrepo "eastbay-overland-rally-planner/internal/ports/out/memberrepo"
-	portrsvprepo "eastbay-overland-rally-planner/internal/ports/out/rsvprepo"
-	porttriprepo "eastbay-overland-rally-planner/internal/ports/out/triprepo"
+	memmemberrepo "ebo-planner-backend/internal/adapters/memory/memberrepo"
+	memrsvprepo "ebo-planner-backend/internal/adapters/memory/rsvprepo"
+	memtriprepo "ebo-planner-backend/internal/adapters/memory/triprepo"
+	"ebo-planner-backend/internal/app/trips"
+	"ebo-planner-backend/internal/domain"
+	portmemberrepo "ebo-planner-backend/internal/ports/out/memberrepo"
+	portrsvprepo "ebo-planner-backend/internal/ports/out/rsvprepo"
+	porttriprepo "ebo-planner-backend/internal/ports/out/triprepo"
 )
 
 func provisionMember(t *testing.T, repo *memmemberrepo.Repo, id domain.MemberID) {
@@ -83,14 +83,14 @@ func TestService_UpdateTrip_DraftVisibilityAuthz(t *testing.T) {
 	name := "Draft"
 	now := time.Unix(200, 0).UTC()
 	_ = tripsRepo.Create(context.Background(), porttriprepo.Trip{
-		ID:                "td1",
-		Status:            porttriprepo.StatusDraft,
-		Name:              &name,
-		CreatorMemberID:   "m1",
+		ID:                 "td1",
+		Status:             porttriprepo.StatusDraft,
+		Name:               &name,
+		CreatorMemberID:    "m1",
 		OrganizerMemberIDs: []domain.MemberID{"m1"},
-		DraftVisibility:   porttriprepo.DraftVisibilityPrivate,
-		CreatedAt:         now,
-		UpdatedAt:         now,
+		DraftVisibility:    porttriprepo.DraftVisibilityPrivate,
+		CreatedAt:          now,
+		UpdatedAt:          now,
 	})
 
 	_, err := svc.UpdateTrip(context.Background(), "m2", "td1", trips.UpdateTripInput{Name: trips.Some("X")})
@@ -116,14 +116,14 @@ func TestService_PublishTrip_RequiresPublicDraftAndRequiredFields(t *testing.T) 
 	name := "Trip"
 	now := time.Unix(300, 0).UTC()
 	_ = tripsRepo.Create(context.Background(), porttriprepo.Trip{
-		ID:                "tpub",
-		Status:            porttriprepo.StatusDraft,
-		Name:              &name,
-		CreatorMemberID:   "m1",
+		ID:                 "tpub",
+		Status:             porttriprepo.StatusDraft,
+		Name:               &name,
+		CreatorMemberID:    "m1",
 		OrganizerMemberIDs: []domain.MemberID{"m1"},
-		DraftVisibility:   porttriprepo.DraftVisibilityPrivate,
-		CreatedAt:         now,
-		UpdatedAt:         now,
+		DraftVisibility:    porttriprepo.DraftVisibilityPrivate,
+		CreatedAt:          now,
+		UpdatedAt:          now,
 	})
 
 	_, _, err := svc.PublishTrip(context.Background(), "m1", "tpub")
@@ -162,14 +162,14 @@ func TestService_CancelTrip_IdempotentAndLocksFurtherUpdates(t *testing.T) {
 	name := "Trip"
 	now := time.Unix(400, 0).UTC()
 	_ = tripsRepo.Create(context.Background(), porttriprepo.Trip{
-		ID:                "tc",
-		Status:            porttriprepo.StatusPublished,
-		Name:              &name,
-		CreatorMemberID:   "m1",
+		ID:                 "tc",
+		Status:             porttriprepo.StatusPublished,
+		Name:               &name,
+		CreatorMemberID:    "m1",
 		OrganizerMemberIDs: []domain.MemberID{"m1"},
-		DraftVisibility:   porttriprepo.DraftVisibilityPublic,
-		CreatedAt:         now,
-		UpdatedAt:         now,
+		DraftVisibility:    porttriprepo.DraftVisibilityPublic,
+		CreatedAt:          now,
+		UpdatedAt:          now,
 	})
 
 	td, err := svc.CancelTrip(context.Background(), "m1", "tc")
@@ -213,14 +213,14 @@ func TestService_OrganizerManagement_AddRemoveAndLastOrganizerInvariant(t *testi
 	name := "Trip"
 	now := time.Unix(500, 0).UTC()
 	_ = tripsRepo.Create(context.Background(), porttriprepo.Trip{
-		ID:                "to",
-		Status:            porttriprepo.StatusPublished,
-		Name:              &name,
-		CreatorMemberID:   "m1",
+		ID:                 "to",
+		Status:             porttriprepo.StatusPublished,
+		Name:               &name,
+		CreatorMemberID:    "m1",
 		OrganizerMemberIDs: []domain.MemberID{"m1"},
-		DraftVisibility:   porttriprepo.DraftVisibilityPublic,
-		CreatedAt:         now,
-		UpdatedAt:         now,
+		DraftVisibility:    porttriprepo.DraftVisibilityPublic,
+		CreatedAt:          now,
+		UpdatedAt:          now,
 	})
 
 	td, err := svc.AddTripOrganizer(context.Background(), "m1", "to", "m2")
@@ -263,16 +263,16 @@ func TestService_RSVP_PublishedOnly_CapacityAndIdempotency(t *testing.T) {
 	cap := 1
 	att0 := 0
 	_ = tripsRepo.Create(ctx, porttriprepo.Trip{
-		ID:                "tp",
-		Status:            porttriprepo.StatusPublished,
-		Name:              &name,
-		CapacityRigs:      &cap,
-		AttendingRigs:     &att0,
-		CreatorMemberID:   "m1",
+		ID:                 "tp",
+		Status:             porttriprepo.StatusPublished,
+		Name:               &name,
+		CapacityRigs:       &cap,
+		AttendingRigs:      &att0,
+		CreatorMemberID:    "m1",
 		OrganizerMemberIDs: []domain.MemberID{"m1"},
-		DraftVisibility:   porttriprepo.DraftVisibilityPublic,
-		CreatedAt:         now,
-		UpdatedAt:         now,
+		DraftVisibility:    porttriprepo.DraftVisibilityPublic,
+		CreatedAt:          now,
+		UpdatedAt:          now,
 	})
 
 	// First YES should succeed and consume capacity.
@@ -334,16 +334,16 @@ func TestService_RSVP_Summary_SortsAndOmitsUnset(t *testing.T) {
 	cap := 5
 	att0 := 0
 	_ = tripsRepo.Create(ctx, porttriprepo.Trip{
-		ID:                "tp",
-		Status:            porttriprepo.StatusPublished,
-		Name:              &name,
-		CapacityRigs:      &cap,
-		AttendingRigs:     &att0,
-		CreatorMemberID:   "m1",
+		ID:                 "tp",
+		Status:             porttriprepo.StatusPublished,
+		Name:               &name,
+		CapacityRigs:       &cap,
+		AttendingRigs:      &att0,
+		CreatorMemberID:    "m1",
 		OrganizerMemberIDs: []domain.MemberID{"m1"},
-		DraftVisibility:   porttriprepo.DraftVisibilityPublic,
-		CreatedAt:         now,
-		UpdatedAt:         now,
+		DraftVisibility:    porttriprepo.DraftVisibilityPublic,
+		CreatedAt:          now,
+		UpdatedAt:          now,
 	})
 
 	// Seed RSVPs: YES (m3), NO (m1), UNSET (m2) -> UNSET omitted.
@@ -366,5 +366,3 @@ func TestService_RSVP_Summary_SortsAndOmitsUnset(t *testing.T) {
 		t.Fatalf("NotAttendingMembers=%v", sum.NotAttendingMembers)
 	}
 }
-
-

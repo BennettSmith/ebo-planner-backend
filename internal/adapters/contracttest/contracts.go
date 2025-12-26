@@ -7,11 +7,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"eastbay-overland-rally-planner/internal/domain"
-	idempotencyport "eastbay-overland-rally-planner/internal/ports/out/idempotency"
-	memberrepoport "eastbay-overland-rally-planner/internal/ports/out/memberrepo"
-	rsvprepoport "eastbay-overland-rally-planner/internal/ports/out/rsvprepo"
-	triprepoport "eastbay-overland-rally-planner/internal/ports/out/triprepo"
+	"ebo-planner-backend/internal/domain"
+	idempotencyport "ebo-planner-backend/internal/ports/out/idempotency"
+	memberrepoport "ebo-planner-backend/internal/ports/out/memberrepo"
+	rsvprepoport "ebo-planner-backend/internal/ports/out/rsvprepo"
+	triprepoport "ebo-planner-backend/internal/ports/out/triprepo"
 )
 
 type CleanupFunc = func()

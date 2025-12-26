@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"eastbay-overland-rally-planner/internal/platform/auth/jwks_testutil"
-	"eastbay-overland-rally-planner/internal/platform/auth/jwtverifier"
-	"eastbay-overland-rally-planner/internal/platform/config"
+	"ebo-planner-backend/internal/platform/auth/jwks_testutil"
+	"ebo-planner-backend/internal/platform/auth/jwtverifier"
+	"ebo-planner-backend/internal/platform/config"
 )
 
 type fakeClock struct{ now time.Time }
@@ -33,13 +33,13 @@ func TestVerifier_Verify_ValidToken(t *testing.T) {
 
 	clk := &fakeClock{now: time.Unix(1700000000, 0)}
 	cfg := config.JWTConfig{
-		Issuer:                "test-iss",
-		Audience:              "test-aud",
-		JWKSURL:               jwksSrv.URL,
-		ClockSkew:             0,
-		JWKSRefreshInterval:   10 * time.Minute,
+		Issuer:                 "test-iss",
+		Audience:               "test-aud",
+		JWKSURL:                jwksSrv.URL,
+		ClockSkew:              0,
+		JWKSRefreshInterval:    10 * time.Minute,
 		JWKSMinRefreshInterval: 0,
-		HTTPTimeout:           2 * time.Second,
+		HTTPTimeout:            2 * time.Second,
 	}
 
 	v := jwtverifier.NewWithOptions(cfg, nil, clk)
@@ -69,13 +69,13 @@ func TestVerifier_Verify_Expired(t *testing.T) {
 
 	clk := &fakeClock{now: time.Unix(1700000000, 0)}
 	cfg := config.JWTConfig{
-		Issuer:                "test-iss",
-		Audience:              "test-aud",
-		JWKSURL:               jwksSrv.URL,
-		ClockSkew:             0,
-		JWKSRefreshInterval:   10 * time.Minute,
+		Issuer:                 "test-iss",
+		Audience:               "test-aud",
+		JWKSURL:                jwksSrv.URL,
+		ClockSkew:              0,
+		JWKSRefreshInterval:    10 * time.Minute,
 		JWKSMinRefreshInterval: 0,
-		HTTPTimeout:           2 * time.Second,
+		HTTPTimeout:            2 * time.Second,
 	}
 	v := jwtverifier.NewWithOptions(cfg, nil, clk)
 
@@ -96,13 +96,13 @@ func TestVerifier_Verify_WrongIssuerOrAudience(t *testing.T) {
 
 	clk := &fakeClock{now: time.Unix(1700000000, 0)}
 	cfg := config.JWTConfig{
-		Issuer:                "test-iss",
-		Audience:              "test-aud",
-		JWKSURL:               jwksSrv.URL,
-		ClockSkew:             0,
-		JWKSRefreshInterval:   10 * time.Minute,
+		Issuer:                 "test-iss",
+		Audience:               "test-aud",
+		JWKSURL:                jwksSrv.URL,
+		ClockSkew:              0,
+		JWKSRefreshInterval:    10 * time.Minute,
 		JWKSMinRefreshInterval: 0,
-		HTTPTimeout:           2 * time.Second,
+		HTTPTimeout:            2 * time.Second,
 	}
 	v := jwtverifier.NewWithOptions(cfg, nil, clk)
 
@@ -128,13 +128,13 @@ func TestVerifier_Verify_BadSignature(t *testing.T) {
 
 	clk := &fakeClock{now: time.Unix(1700000000, 0)}
 	cfg := config.JWTConfig{
-		Issuer:                "test-iss",
-		Audience:              "test-aud",
-		JWKSURL:               jwksSrv.URL,
-		ClockSkew:             0,
-		JWKSRefreshInterval:   10 * time.Minute,
+		Issuer:                 "test-iss",
+		Audience:               "test-aud",
+		JWKSURL:                jwksSrv.URL,
+		ClockSkew:              0,
+		JWKSRefreshInterval:    10 * time.Minute,
 		JWKSMinRefreshInterval: 0,
-		HTTPTimeout:           2 * time.Second,
+		HTTPTimeout:            2 * time.Second,
 	}
 	v := jwtverifier.NewWithOptions(cfg, nil, clk)
 
@@ -159,13 +159,13 @@ func TestVerifier_Verify_JWKSRotation_OldKidRejected_NewKidAccepted(t *testing.T
 
 	clk := &fakeClock{now: time.Unix(1700000000, 0)}
 	cfg := config.JWTConfig{
-		Issuer:                "test-iss",
-		Audience:              "test-aud",
-		JWKSURL:               jwksSrv.URL,
-		ClockSkew:             0,
-		JWKSRefreshInterval:   1 * time.Second,
+		Issuer:                 "test-iss",
+		Audience:               "test-aud",
+		JWKSURL:                jwksSrv.URL,
+		ClockSkew:              0,
+		JWKSRefreshInterval:    1 * time.Second,
 		JWKSMinRefreshInterval: 0,
-		HTTPTimeout:           2 * time.Second,
+		HTTPTimeout:            2 * time.Second,
 	}
 	v := jwtverifier.NewWithOptions(cfg, nil, clk)
 
@@ -192,5 +192,3 @@ func TestVerifier_Verify_JWKSRotation_OldKidRejected_NewKidAccepted(t *testing.T
 		t.Fatalf("sub mismatch: got %q", sub)
 	}
 }
-
-

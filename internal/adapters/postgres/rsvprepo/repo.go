@@ -10,8 +10,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"eastbay-overland-rally-planner/internal/domain"
-	"eastbay-overland-rally-planner/internal/ports/out/rsvprepo"
+	"ebo-planner-backend/internal/domain"
+	"ebo-planner-backend/internal/ports/out/rsvprepo"
 )
 
 // Repo is a Postgres implementation of rsvprepo.Repository.

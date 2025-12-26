@@ -9,9 +9,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"eastbay-overland-rally-planner/internal/domain"
-	clockport "eastbay-overland-rally-planner/internal/ports/out/clock"
-	"eastbay-overland-rally-planner/internal/ports/out/memberrepo"
+	"ebo-planner-backend/internal/domain"
+	clockport "ebo-planner-backend/internal/ports/out/clock"
+	"ebo-planner-backend/internal/ports/out/memberrepo"
 )
 
 type Service struct {
@@ -133,13 +133,13 @@ func (s *Service) CreateMyMember(ctx context.Context, subject domain.SubjectID, 
 	m := memberrepo.Member{
 		ID:              id,
 		Subject:         subject,
-		DisplayName:      displayName,
-		Email:            email,
-		GroupAliasEmail:  cloneStringPtr(in.GroupAliasEmail),
-		VehicleProfile:   createVehicleProfile(in.VehicleProfile),
-		IsActive:         true,
-		CreatedAt:        now,
-		UpdatedAt:        now,
+		DisplayName:     displayName,
+		Email:           email,
+		GroupAliasEmail: cloneStringPtr(in.GroupAliasEmail),
+		VehicleProfile:  createVehicleProfile(in.VehicleProfile),
+		IsActive:        true,
+		CreatedAt:       now,
+		UpdatedAt:       now,
 	}
 	if err := s.repo.Create(ctx, m); err != nil {
 		if errors.Is(err, memberrepo.ErrSubjectAlreadyBound) {
@@ -337,13 +337,13 @@ func toDomain(m memberrepo.Member) domain.Member {
 	return domain.Member{
 		ID:              m.ID,
 		Subject:         m.Subject,
-		DisplayName:      m.DisplayName,
-		Email:            m.Email,
-		GroupAliasEmail:  cloneStringPtr(m.GroupAliasEmail),
-		VehicleProfile:   cloneVehicleProfile(m.VehicleProfile),
-		IsActive:         m.IsActive,
-		CreatedAt:        m.CreatedAt,
-		UpdatedAt:        m.UpdatedAt,
+		DisplayName:     m.DisplayName,
+		Email:           m.Email,
+		GroupAliasEmail: cloneStringPtr(m.GroupAliasEmail),
+		VehicleProfile:  cloneVehicleProfile(m.VehicleProfile),
+		IsActive:        m.IsActive,
+		CreatedAt:       m.CreatedAt,
+		UpdatedAt:       m.UpdatedAt,
 	}
 }
 
@@ -390,5 +390,3 @@ func sortMembersByDisplayName(ms []domain.Member) {
 		return di < dj
 	})
 }
-
-

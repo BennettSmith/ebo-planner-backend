@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"eastbay-overland-rally-planner/internal/domain"
-	"eastbay-overland-rally-planner/internal/ports/out/memberrepo"
+	"ebo-planner-backend/internal/domain"
+	"ebo-planner-backend/internal/ports/out/memberrepo"
 )
 
 // Repo is an in-memory implementation of memberrepo.Repository.

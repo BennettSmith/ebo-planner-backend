@@ -42,5 +42,3 @@ type CreateMyMemberInput struct {
 	GroupAliasEmail *string
 	VehicleProfile  *VehicleProfilePatch // treated as a full object on create
 }
-
-

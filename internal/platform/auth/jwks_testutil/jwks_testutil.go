@@ -1,9 +1,9 @@
 package jwks_testutil
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
@@ -111,5 +111,3 @@ func MintRS256JWT(kp Keypair, iss string, aud any, sub string, now time.Time, ex
 	}
 	return signingInput + "." + enc.EncodeToString(sig), nil
 }
-
-

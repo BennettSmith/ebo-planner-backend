@@ -1,4 +1,4 @@
-module eastbay-overland-rally-planner
+module ebo-planner-backend
 
 go 1.23.0
 

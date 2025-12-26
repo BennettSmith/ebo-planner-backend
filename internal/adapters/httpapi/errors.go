@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/oapi-codegen/nullable"
 
-	"eastbay-overland-rally-planner/internal/adapters/httpapi/oas"
+	"ebo-planner-backend/internal/adapters/httpapi/oas"
 )
 
 func writeOASError(w http.ResponseWriter, r *http.Request, status int, code string, message string, details map[string]any) {
@@ -25,5 +25,3 @@ func writeOASError(w http.ResponseWriter, r *http.Request, status int, code stri
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(er)
 }
-
-

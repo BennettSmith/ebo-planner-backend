@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"eastbay-overland-rally-planner/internal/domain"
+	"ebo-planner-backend/internal/domain"
 )
 
 // Member is the persistence shape used by the member repository.
@@ -13,8 +13,8 @@ import (
 // domain models and use-cases (Milestones 3+). It's used as an internal record,
 // not an HTTP DTO.
 type Member struct {
-	ID       domain.MemberID
-	Subject  domain.SubjectID
+	ID      domain.MemberID
+	Subject domain.SubjectID
 	// DisplayName is the member's preferred display name.
 	DisplayName string
 	// Email is stored for the member profile, but is not safe to return in directory/search.
@@ -47,5 +47,3 @@ type Repository interface {
 	// The query validation (e.g. minimum length) is enforced at the application layer.
 	SearchActiveByDisplayName(ctx context.Context, query string, limit int) ([]Member, error)
 }
-
-

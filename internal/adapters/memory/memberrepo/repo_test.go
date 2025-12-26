@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"eastbay-overland-rally-planner/internal/domain"
-	"eastbay-overland-rally-planner/internal/ports/out/memberrepo"
+	"ebo-planner-backend/internal/domain"
+	"ebo-planner-backend/internal/ports/out/memberrepo"
 )
 
 func TestRepo_CreateAndGet(t *testing.T) {

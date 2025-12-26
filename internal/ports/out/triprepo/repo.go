@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"eastbay-overland-rally-planner/internal/domain"
+	"ebo-planner-backend/internal/domain"
 )
 
 type Status string
@@ -33,7 +33,7 @@ type Trip struct {
 	Name        *string
 	Description *string
 
-	CreatorMemberID domain.MemberID
+	CreatorMemberID    domain.MemberID
 	OrganizerMemberIDs []domain.MemberID
 
 	DraftVisibility DraftVisibility
@@ -75,5 +75,3 @@ type Repository interface {
 	// - PRIVATE drafts are visible only to the creator (caller must equal CreatorMemberID)
 	ListDraftsVisibleTo(ctx context.Context, caller domain.MemberID) ([]Trip, error)
 }
-
-

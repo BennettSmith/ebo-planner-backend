@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"eastbay-overland-rally-planner/internal/adapters/httpapi/oas"
-	"eastbay-overland-rally-planner/internal/platform/auth/jwks_testutil"
-	"eastbay-overland-rally-planner/internal/platform/auth/jwtverifier"
-	"eastbay-overland-rally-planner/internal/platform/config"
+	"ebo-planner-backend/internal/adapters/httpapi/oas"
+	"ebo-planner-backend/internal/platform/auth/jwks_testutil"
+	"ebo-planner-backend/internal/platform/auth/jwtverifier"
+	"ebo-planner-backend/internal/platform/config"
 )
 
 type fixedClock struct{ t time.Time }
@@ -47,13 +47,13 @@ func newTestAuthRouter(t *testing.T) (http.Handler, func(now time.Time, kid stri
 	setKeys([]jwks_testutil.Keypair{kp})
 
 	cfg := config.JWTConfig{
-		Issuer:                "test-iss",
-		Audience:              "test-aud",
-		JWKSURL:               jwksSrv.URL,
-		ClockSkew:             0,
-		JWKSRefreshInterval:   10 * time.Minute,
+		Issuer:                 "test-iss",
+		Audience:               "test-aud",
+		JWKSURL:                jwksSrv.URL,
+		ClockSkew:              0,
+		JWKSRefreshInterval:    10 * time.Minute,
 		JWKSMinRefreshInterval: 0,
-		HTTPTimeout:           2 * time.Second,
+		HTTPTimeout:            2 * time.Second,
 	}
 
 	clk := fixedClock{t: time.Unix(1700000000, 0)}
@@ -153,5 +153,3 @@ func TestStrictRequestError_Is422JSON(t *testing.T) {
 		t.Fatalf("code: got %q", er.Error.Code)
 	}
 }
-
-

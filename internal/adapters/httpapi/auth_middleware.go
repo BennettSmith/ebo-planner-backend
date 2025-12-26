@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"eastbay-overland-rally-planner/internal/platform/auth/jwtverifier"
+	"ebo-planner-backend/internal/platform/auth/jwtverifier"
 )
 
 // NewAuthMiddleware enforces Authorization: Bearer <JWT> for all in-spec endpoints.
@@ -75,5 +75,3 @@ func NewDevAuthMiddleware(defaultSubject string) func(http.Handler) http.Handler
 		})
 	}
 }
-
-

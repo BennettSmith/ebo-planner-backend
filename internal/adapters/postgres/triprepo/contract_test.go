@@ -3,13 +3,13 @@ package triprepo
 import (
 	"testing"
 
-	"eastbay-overland-rally-planner/internal/adapters/contracttest"
-	"eastbay-overland-rally-planner/internal/adapters/postgres/memberrepo"
-	"eastbay-overland-rally-planner/internal/adapters/postgres/rsvprepo"
-	"eastbay-overland-rally-planner/internal/adapters/postgres/testutil"
-	memberrepoport "eastbay-overland-rally-planner/internal/ports/out/memberrepo"
-	rsvprepoport "eastbay-overland-rally-planner/internal/ports/out/rsvprepo"
-	triprepoport "eastbay-overland-rally-planner/internal/ports/out/triprepo"
+	"ebo-planner-backend/internal/adapters/contracttest"
+	"ebo-planner-backend/internal/adapters/postgres/memberrepo"
+	"ebo-planner-backend/internal/adapters/postgres/rsvprepo"
+	"ebo-planner-backend/internal/adapters/postgres/testutil"
+	memberrepoport "ebo-planner-backend/internal/ports/out/memberrepo"
+	rsvprepoport "ebo-planner-backend/internal/ports/out/rsvprepo"
+	triprepoport "ebo-planner-backend/internal/ports/out/triprepo"
 )
 
 func TestContract_PostgresTripAndRSVPRepos(t *testing.T) {

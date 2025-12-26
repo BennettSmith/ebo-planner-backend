@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"eastbay-overland-rally-planner/internal/adapters/httpapi/oas"
+	"ebo-planner-backend/internal/adapters/httpapi/oas"
 )
 
 type RouterOptions struct {

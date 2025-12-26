@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"eastbay-overland-rally-planner/internal/domain"
-	"eastbay-overland-rally-planner/internal/ports/out/triprepo"
+	"ebo-planner-backend/internal/domain"
+	"ebo-planner-backend/internal/ports/out/triprepo"
 )
 
 func TestRepo_ListPublishedAndCanceled_FiltersAndSorts(t *testing.T) {

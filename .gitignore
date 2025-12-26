@@ -15,6 +15,10 @@ dist/
 build/
 out/
 
+# Exception: we *do* want to track this package path even though it contains `out/`
+!internal/ports/out/
+!internal/ports/out/**
+
 # Go tooling / deps
 # (Remove this if you intentionally commit vendored deps.)
 vendor/

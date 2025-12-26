@@ -9,5 +9,3 @@ type MemberID string
 
 // TripID is an internal identifier for a trip record.
 type TripID string
-
-

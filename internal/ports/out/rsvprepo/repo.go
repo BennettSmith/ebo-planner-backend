@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"eastbay-overland-rally-planner/internal/domain"
+	"ebo-planner-backend/internal/domain"
 )
 
 type Status string
@@ -36,5 +36,3 @@ type Repository interface {
 	// CountYesByTrip counts RSVP=YES for the specified trip.
 	CountYesByTrip(ctx context.Context, tripID domain.TripID) (int, error)
 }
-
-

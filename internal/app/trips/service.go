@@ -10,10 +10,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"eastbay-overland-rally-planner/internal/domain"
-	"eastbay-overland-rally-planner/internal/ports/out/memberrepo"
-	"eastbay-overland-rally-planner/internal/ports/out/rsvprepo"
-	"eastbay-overland-rally-planner/internal/ports/out/triprepo"
+	"ebo-planner-backend/internal/domain"
+	"ebo-planner-backend/internal/ports/out/memberrepo"
+	"ebo-planner-backend/internal/ports/out/rsvprepo"
+	"ebo-planner-backend/internal/ports/out/triprepo"
 )
 
 type Service struct {
@@ -292,14 +292,14 @@ func (s *Service) CreateTripDraft(ctx context.Context, caller domain.MemberID, i
 	now := time.Now().UTC()
 	id := s.newTripID()
 	t := triprepo.Trip{
-		ID:               id,
-		Status:           triprepo.StatusDraft,
-		Name:             &name,
-		CreatorMemberID:  caller,
+		ID:                 id,
+		Status:             triprepo.StatusDraft,
+		Name:               &name,
+		CreatorMemberID:    caller,
 		OrganizerMemberIDs: []domain.MemberID{caller},
-		DraftVisibility:  triprepo.DraftVisibilityPrivate,
-		CreatedAt:        now,
-		UpdatedAt:        now,
+		DraftVisibility:    triprepo.DraftVisibilityPrivate,
+		CreatedAt:          now,
+		UpdatedAt:          now,
 	}
 	if err := s.trips.Create(ctx, t); err != nil {
 		if errors.Is(err, triprepo.ErrAlreadyExists) {
@@ -310,8 +310,8 @@ func (s *Service) CreateTripDraft(ctx context.Context, caller domain.MemberID, i
 	}
 
 	return TripCreated{
-		ID:             id,
-		Status:         domain.TripStatusDraft,
+		ID:              id,
+		Status:          domain.TripStatusDraft,
 		DraftVisibility: domain.DraftVisibilityPrivate,
 	}, nil
 }
@@ -658,9 +658,9 @@ func (s *Service) loadOrganizerSummaries(ctx context.Context, ids []domain.Membe
 			return nil, err
 		}
 		out = append(out, domain.MemberSummary{
-			ID:          m.ID,
-			DisplayName: m.DisplayName,
-			Email:       m.Email,
+			ID:              m.ID,
+			DisplayName:     m.DisplayName,
+			Email:           m.Email,
 			GroupAliasEmail: cloneStringPtr(m.GroupAliasEmail),
 		})
 	}
@@ -790,9 +790,9 @@ func (s *Service) tripRSVPSummaryForTrip(ctx context.Context, t triprepo.Trip) (
 	}
 
 	return domain.TripRSVPSummary{
-		CapacityRigs: cloneIntPtr(t.CapacityRigs),
-		AttendingRigs: len(yesMembers),
-		AttendingMembers: yesMembers,
+		CapacityRigs:        cloneIntPtr(t.CapacityRigs),
+		AttendingRigs:       len(yesMembers),
+		AttendingMembers:    yesMembers,
 		NotAttendingMembers: noMembers,
 	}, nil
 }
@@ -808,9 +808,9 @@ func (s *Service) loadMemberSummariesSorted(ctx context.Context, ids []domain.Me
 			return nil, err
 		}
 		out = append(out, domain.MemberSummary{
-			ID:             m.ID,
-			DisplayName:    m.DisplayName,
-			Email:          m.Email,
+			ID:              m.ID,
+			DisplayName:     m.DisplayName,
+			Email:           m.Email,
 			GroupAliasEmail: cloneStringPtr(m.GroupAliasEmail),
 		})
 	}
@@ -985,7 +985,7 @@ func toDomainSummary(t triprepo.Trip) domain.TripSummary {
 		StartDate: cloneTimePtr(t.StartDate),
 		EndDate:   cloneTimePtr(t.EndDate),
 
-		CapacityRigs:  cloneIntPtr(t.CapacityRigs),
+		CapacityRigs: cloneIntPtr(t.CapacityRigs),
 	}
 
 	// Attending rigs is present only for published trips per OpenAPI schema.

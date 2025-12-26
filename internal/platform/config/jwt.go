@@ -14,8 +14,8 @@ type JWTConfig struct {
 	Audience string
 	JWKSURL  string
 
-	ClockSkew            time.Duration
-	JWKSRefreshInterval  time.Duration
+	ClockSkew              time.Duration
+	JWKSRefreshInterval    time.Duration
 	JWKSMinRefreshInterval time.Duration
 
 	HTTPTimeout time.Duration
@@ -31,10 +31,10 @@ func LoadJWTConfigFromEnv() (JWTConfig, error) {
 
 	// Reasonable defaults that make local/dev/test behavior predictable.
 	cfg := JWTConfig{
-		Issuer:     issuer,
-		Audience:   audience,
-		JWKSURL:    jwksURL,
-		ClockSkew:  30 * time.Second,
+		Issuer:    issuer,
+		Audience:  audience,
+		JWKSURL:   jwksURL,
+		ClockSkew: 30 * time.Second,
 		// Refresh periodically to pick up key rotation even if an old key is still cached.
 		JWKSRefreshInterval: 5 * time.Minute,
 		// Bound refresh frequency when a token presents an unknown kid (avoid thundering herd).
@@ -66,5 +66,3 @@ func LoadJWTConfigFromEnv() (JWTConfig, error) {
 
 	return cfg, nil
 }
-
-

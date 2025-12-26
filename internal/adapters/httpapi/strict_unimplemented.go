@@ -3,7 +3,7 @@ package httpapi
 import (
 	"context"
 
-	"eastbay-overland-rally-planner/internal/adapters/httpapi/oas"
+	"ebo-planner-backend/internal/adapters/httpapi/oas"
 )
 
 // StrictUnimplemented is a temporary strict-server implementation used to keep the

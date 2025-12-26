@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"eastbay-overland-rally-planner/internal/platform/config"
+	"ebo-planner-backend/internal/platform/config"
 )
 
 var (
@@ -55,9 +55,9 @@ func NewWithOptions(cfg config.JWTConfig, httpClient *http.Client, clock Clock) 
 		clock = realClock{}
 	}
 	return &Verifier{
-		cfg:      cfg,
-		client:   httpClient,
-		clock:    clock,
+		cfg:       cfg,
+		client:    httpClient,
+		clock:     clock,
 		keysByKID: map[string]*rsa.PublicKey{},
 	}
 }
@@ -311,5 +311,3 @@ func parseJWKS(b []byte) (map[string]*rsa.PublicKey, error) {
 	}
 	return out, nil
 }
-
-

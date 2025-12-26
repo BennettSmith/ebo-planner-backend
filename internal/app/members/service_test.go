@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	memclock "eastbay-overland-rally-planner/internal/adapters/memory/clock"
-	memmemberrepo "eastbay-overland-rally-planner/internal/adapters/memory/memberrepo"
-	"eastbay-overland-rally-planner/internal/domain"
+	memclock "ebo-planner-backend/internal/adapters/memory/clock"
+	memmemberrepo "ebo-planner-backend/internal/adapters/memory/memberrepo"
+	"ebo-planner-backend/internal/domain"
 )
 
 func TestService_GetMyMemberProfile_NotProvisioned(t *testing.T) {
@@ -130,5 +130,3 @@ func TestService_SearchMembers_ValidatesMinLength(t *testing.T) {
 		t.Fatalf("err=%v, want 422 validation error", err)
 	}
 }
-
-

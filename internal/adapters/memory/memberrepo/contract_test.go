@@ -3,8 +3,8 @@ package memberrepo
 import (
 	"testing"
 
-	"eastbay-overland-rally-planner/internal/adapters/contracttest"
-	memberrepoport "eastbay-overland-rally-planner/internal/ports/out/memberrepo"
+	"ebo-planner-backend/internal/adapters/contracttest"
+	memberrepoport "ebo-planner-backend/internal/ports/out/memberrepo"
 )
 
 func TestContract_MemberRepo(t *testing.T) {

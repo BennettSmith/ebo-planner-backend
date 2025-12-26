@@ -11,23 +11,23 @@ import (
 	"testing"
 	"time"
 
-	"eastbay-overland-rally-planner/internal/adapters/httpapi"
-	memclock "eastbay-overland-rally-planner/internal/adapters/memory/clock"
-	memidempotency "eastbay-overland-rally-planner/internal/adapters/memory/idempotency"
-	memmemberrepo "eastbay-overland-rally-planner/internal/adapters/memory/memberrepo"
-	memrsvprepo "eastbay-overland-rally-planner/internal/adapters/memory/rsvprepo"
-	memtriprepo "eastbay-overland-rally-planner/internal/adapters/memory/triprepo"
-	pgidempotency "eastbay-overland-rally-planner/internal/adapters/postgres/idempotency"
-	pgmemberrepo "eastbay-overland-rally-planner/internal/adapters/postgres/memberrepo"
-	pgrsvprepo "eastbay-overland-rally-planner/internal/adapters/postgres/rsvprepo"
-	postgres_testutil "eastbay-overland-rally-planner/internal/adapters/postgres/testutil"
-	pgtriprepo "eastbay-overland-rally-planner/internal/adapters/postgres/triprepo"
-	"eastbay-overland-rally-planner/internal/app/members"
-	"eastbay-overland-rally-planner/internal/app/trips"
-	idempotencyport "eastbay-overland-rally-planner/internal/ports/out/idempotency"
-	memberrepoport "eastbay-overland-rally-planner/internal/ports/out/memberrepo"
-	rsvprepoport "eastbay-overland-rally-planner/internal/ports/out/rsvprepo"
-	triprepoport "eastbay-overland-rally-planner/internal/ports/out/triprepo"
+	"ebo-planner-backend/internal/adapters/httpapi"
+	memclock "ebo-planner-backend/internal/adapters/memory/clock"
+	memidempotency "ebo-planner-backend/internal/adapters/memory/idempotency"
+	memmemberrepo "ebo-planner-backend/internal/adapters/memory/memberrepo"
+	memrsvprepo "ebo-planner-backend/internal/adapters/memory/rsvprepo"
+	memtriprepo "ebo-planner-backend/internal/adapters/memory/triprepo"
+	pgidempotency "ebo-planner-backend/internal/adapters/postgres/idempotency"
+	pgmemberrepo "ebo-planner-backend/internal/adapters/postgres/memberrepo"
+	pgrsvprepo "ebo-planner-backend/internal/adapters/postgres/rsvprepo"
+	postgres_testutil "ebo-planner-backend/internal/adapters/postgres/testutil"
+	pgtriprepo "ebo-planner-backend/internal/adapters/postgres/triprepo"
+	"ebo-planner-backend/internal/app/members"
+	"ebo-planner-backend/internal/app/trips"
+	idempotencyport "ebo-planner-backend/internal/ports/out/idempotency"
+	memberrepoport "ebo-planner-backend/internal/ports/out/memberrepo"
+	rsvprepoport "ebo-planner-backend/internal/ports/out/rsvprepo"
+	triprepoport "ebo-planner-backend/internal/ports/out/triprepo"
 )
 
 type backend string
@@ -177,5 +177,3 @@ func requireHeaderPresent(t *testing.T, h http.Header, key string) {
 		t.Fatalf("expected header %q to be present", key)
 	}
 }
-
-

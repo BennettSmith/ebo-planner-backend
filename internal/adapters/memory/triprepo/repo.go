@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"eastbay-overland-rally-planner/internal/domain"
-	"eastbay-overland-rally-planner/internal/ports/out/triprepo"
+	"ebo-planner-backend/internal/domain"
+	"ebo-planner-backend/internal/ports/out/triprepo"
 )
 
 // Repo is an in-memory implementation of triprepo.Repository.

@@ -12,5 +12,3 @@ func SubjectFromContext(ctx context.Context) (string, bool) {
 	v, ok := ctx.Value(subjectKey{}).(string)
 	return v, ok && v != ""
 }
-
-

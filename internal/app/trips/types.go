@@ -3,7 +3,7 @@ package trips
 import (
 	"time"
 
-	"eastbay-overland-rally-planner/internal/domain"
+	"ebo-planner-backend/internal/domain"
 )
 
 // Optional is a tri-state field used to distinguish:
@@ -30,8 +30,8 @@ type CreateTripDraftInput struct {
 
 // TripCreated is the minimal response returned when a draft trip is created.
 type TripCreated struct {
-	ID             domain.TripID
-	Status         domain.TripStatus
+	ID              domain.TripID
+	Status          domain.TripStatus
 	DraftVisibility domain.DraftVisibility
 }
 
@@ -47,7 +47,7 @@ type UpdateTripInput struct {
 	// Name is optional and cannot be null.
 	Name Optional[string]
 
-	Description Optional[string]
+	Description  Optional[string]
 	StartDate    Optional[time.Time]
 	EndDate      Optional[time.Time]
 	CapacityRigs Optional[int]
@@ -59,5 +59,3 @@ type UpdateTripInput struct {
 
 	ArtifactIDs Optional[[]string] // null clears all artifacts; value reorders existing artifacts by ID
 }
-
-

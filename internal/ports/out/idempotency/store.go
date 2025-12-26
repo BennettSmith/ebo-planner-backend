@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"eastbay-overland-rally-planner/internal/domain"
+	"ebo-planner-backend/internal/domain"
 )
 
 // Key is the caller-provided idempotency key (Idempotency-Key header).
@@ -35,5 +35,3 @@ type Store interface {
 	Get(ctx context.Context, fp Fingerprint) (Record, bool, error)
 	Put(ctx context.Context, fp Fingerprint, rec Record) error
 }
-
-

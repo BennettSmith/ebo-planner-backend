@@ -9,20 +9,20 @@ import (
 	"testing"
 	"time"
 
-	memclock "eastbay-overland-rally-planner/internal/adapters/memory/clock"
-	memidempotency "eastbay-overland-rally-planner/internal/adapters/memory/idempotency"
-	memmemberrepo "eastbay-overland-rally-planner/internal/adapters/memory/memberrepo"
-	memrsvprepo "eastbay-overland-rally-planner/internal/adapters/memory/rsvprepo"
-	memtriprepo "eastbay-overland-rally-planner/internal/adapters/memory/triprepo"
-	"eastbay-overland-rally-planner/internal/adapters/httpapi/oas"
-	"eastbay-overland-rally-planner/internal/app/members"
-	"eastbay-overland-rally-planner/internal/app/trips"
-	"eastbay-overland-rally-planner/internal/domain"
-	"eastbay-overland-rally-planner/internal/platform/auth/jwks_testutil"
-	"eastbay-overland-rally-planner/internal/platform/auth/jwtverifier"
-	"eastbay-overland-rally-planner/internal/platform/config"
-	portmemberrepo "eastbay-overland-rally-planner/internal/ports/out/memberrepo"
-	porttriprepo "eastbay-overland-rally-planner/internal/ports/out/triprepo"
+	"ebo-planner-backend/internal/adapters/httpapi/oas"
+	memclock "ebo-planner-backend/internal/adapters/memory/clock"
+	memidempotency "ebo-planner-backend/internal/adapters/memory/idempotency"
+	memmemberrepo "ebo-planner-backend/internal/adapters/memory/memberrepo"
+	memrsvprepo "ebo-planner-backend/internal/adapters/memory/rsvprepo"
+	memtriprepo "ebo-planner-backend/internal/adapters/memory/triprepo"
+	"ebo-planner-backend/internal/app/members"
+	"ebo-planner-backend/internal/app/trips"
+	"ebo-planner-backend/internal/domain"
+	"ebo-planner-backend/internal/platform/auth/jwks_testutil"
+	"ebo-planner-backend/internal/platform/auth/jwtverifier"
+	"ebo-planner-backend/internal/platform/config"
+	portmemberrepo "ebo-planner-backend/internal/ports/out/memberrepo"
+	porttriprepo "ebo-planner-backend/internal/ports/out/triprepo"
 )
 
 type fixedClockTrips struct{ t time.Time }
@@ -41,11 +41,11 @@ func newTestTripRouter(t *testing.T) (http.Handler, func(now time.Time, kid stri
 	setKeys([]jwks_testutil.Keypair{kp})
 
 	jwtCfg := config.JWTConfig{
-		Issuer:                  "test-iss",
-		Audience:                "test-aud",
-		JWKSURL:                 jwksSrv.URL,
-		ClockSkew:               0,
-		JWKSRefreshInterval:     10 * time.Minute,
+		Issuer:                 "test-iss",
+		Audience:               "test-aud",
+		JWKSURL:                jwksSrv.URL,
+		ClockSkew:              0,
+		JWKSRefreshInterval:    10 * time.Minute,
 		JWKSMinRefreshInterval: time.Second,
 		HTTPTimeout:            2 * time.Second,
 	}
@@ -183,19 +183,19 @@ func TestTrips_ListMyDraftTrips_VisibilityAndDraftVisibilityField(t *testing.T) 
 
 	// Visible: PUBLIC + caller is organizer
 	_ = tripRepo.Create(context.Background(), porttriprepo.Trip{
-		ID:                "t1",
-		Status:            porttriprepo.StatusDraft,
-		DraftVisibility:   porttriprepo.DraftVisibilityPublic,
+		ID:                 "t1",
+		Status:             porttriprepo.StatusDraft,
+		DraftVisibility:    porttriprepo.DraftVisibilityPublic,
 		OrganizerMemberIDs: []domain.MemberID{callerID, "m2"},
-		CreatedAt:         time.Unix(10, 0).UTC(),
+		CreatedAt:          time.Unix(10, 0).UTC(),
 	})
 	// Not visible: PUBLIC + caller not organizer
 	_ = tripRepo.Create(context.Background(), porttriprepo.Trip{
-		ID:                "t2",
-		Status:            porttriprepo.StatusDraft,
-		DraftVisibility:   porttriprepo.DraftVisibilityPublic,
+		ID:                 "t2",
+		Status:             porttriprepo.StatusDraft,
+		DraftVisibility:    porttriprepo.DraftVisibilityPublic,
 		OrganizerMemberIDs: []domain.MemberID{"m2"},
-		CreatedAt:         time.Unix(20, 0).UTC(),
+		CreatedAt:          time.Unix(20, 0).UTC(),
 	})
 	// Visible: PRIVATE + caller is creator
 	_ = tripRepo.Create(context.Background(), porttriprepo.Trip{
@@ -272,24 +272,24 @@ func TestTrips_GetTripDetails_VisibilityRulesAndResponseShape(t *testing.T) {
 		Status:             porttriprepo.StatusPublished,
 		Name:               &name,
 		Description:        &desc,
-		StartDate:           &start,
-		EndDate:             &end,
-		CapacityRigs:        &cap,
-		CreatorMemberID:     callerID,
-		OrganizerMemberIDs:  []domain.MemberID{callerID, "m2"},
-		MeetingLocation:     &domain.Location{Label: "Meet", Address: &addr, Latitude: &lat, Longitude: &lng},
-		Artifacts:           []domain.TripArtifact{{ArtifactID: "a1", Type: domain.ArtifactTypeGPX, Title: "Route", URL: "https://example.com/route.gpx"}},
+		StartDate:          &start,
+		EndDate:            &end,
+		CapacityRigs:       &cap,
+		CreatorMemberID:    callerID,
+		OrganizerMemberIDs: []domain.MemberID{callerID, "m2"},
+		MeetingLocation:    &domain.Location{Label: "Meet", Address: &addr, Latitude: &lat, Longitude: &lng},
+		Artifacts:          []domain.TripArtifact{{ArtifactID: "a1", Type: domain.ArtifactTypeGPX, Title: "Route", URL: "https://example.com/route.gpx"}},
 		CreatedAt:          time.Unix(10, 0).UTC(),
 	})
 
 	// Non-visible draft should 404.
 	_ = tripRepo.Create(context.Background(), porttriprepo.Trip{
-		ID:              "td-private",
-		Status:          porttriprepo.StatusDraft,
-		DraftVisibility: porttriprepo.DraftVisibilityPrivate,
-		CreatorMemberID: "m2",
+		ID:                 "td-private",
+		Status:             porttriprepo.StatusDraft,
+		DraftVisibility:    porttriprepo.DraftVisibilityPrivate,
+		CreatorMemberID:    "m2",
 		OrganizerMemberIDs: []domain.MemberID{"m2"},
-		CreatedAt:       time.Unix(20, 0).UTC(),
+		CreatedAt:          time.Unix(20, 0).UTC(),
 	})
 
 	req404 := httptest.NewRequest(http.MethodGet, "/trips/td-private", nil)
@@ -478,16 +478,16 @@ func TestTrips_RSVP_Flow_SetGetSummary_IdempotencyAndCapacity(t *testing.T) {
 	att := 0
 	now := time.Unix(10, 0).UTC()
 	_ = tripRepo.Create(context.Background(), porttriprepo.Trip{
-		ID:                "tr",
-		Status:            porttriprepo.StatusPublished,
-		Name:              &name,
-		CapacityRigs:      &cap,
-		AttendingRigs:     &att,
-		CreatorMemberID:   m1,
+		ID:                 "tr",
+		Status:             porttriprepo.StatusPublished,
+		Name:               &name,
+		CapacityRigs:       &cap,
+		AttendingRigs:      &att,
+		CreatorMemberID:    m1,
 		OrganizerMemberIDs: []domain.MemberID{m1, m2},
-		DraftVisibility:   porttriprepo.DraftVisibilityPublic,
-		CreatedAt:         now,
-		UpdatedAt:         now,
+		DraftVisibility:    porttriprepo.DraftVisibilityPublic,
+		CreatedAt:          now,
+		UpdatedAt:          now,
 	})
 
 	// Before setting, GET my RSVP should 404.
@@ -591,5 +591,3 @@ func TestTrips_RSVP_Flow_SetGetSummary_IdempotencyAndCapacity(t *testing.T) {
 		t.Fatalf("expected rsvpSummary and myRsvp in trip details for m1")
 	}
 }
-
-

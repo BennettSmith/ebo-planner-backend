@@ -8,17 +8,17 @@ import (
 	"testing"
 	"time"
 
-	memclock "eastbay-overland-rally-planner/internal/adapters/memory/clock"
-	memidempotency "eastbay-overland-rally-planner/internal/adapters/memory/idempotency"
-	memmemberrepo "eastbay-overland-rally-planner/internal/adapters/memory/memberrepo"
-	memrsvprepo "eastbay-overland-rally-planner/internal/adapters/memory/rsvprepo"
-	memtriprepo "eastbay-overland-rally-planner/internal/adapters/memory/triprepo"
-	"eastbay-overland-rally-planner/internal/adapters/httpapi/oas"
-	"eastbay-overland-rally-planner/internal/app/members"
-	"eastbay-overland-rally-planner/internal/app/trips"
-	"eastbay-overland-rally-planner/internal/platform/auth/jwks_testutil"
-	"eastbay-overland-rally-planner/internal/platform/auth/jwtverifier"
-	"eastbay-overland-rally-planner/internal/platform/config"
+	"ebo-planner-backend/internal/adapters/httpapi/oas"
+	memclock "ebo-planner-backend/internal/adapters/memory/clock"
+	memidempotency "ebo-planner-backend/internal/adapters/memory/idempotency"
+	memmemberrepo "ebo-planner-backend/internal/adapters/memory/memberrepo"
+	memrsvprepo "ebo-planner-backend/internal/adapters/memory/rsvprepo"
+	memtriprepo "ebo-planner-backend/internal/adapters/memory/triprepo"
+	"ebo-planner-backend/internal/app/members"
+	"ebo-planner-backend/internal/app/trips"
+	"ebo-planner-backend/internal/platform/auth/jwks_testutil"
+	"ebo-planner-backend/internal/platform/auth/jwtverifier"
+	"ebo-planner-backend/internal/platform/config"
 )
 
 type fixedClockMembers struct{ t time.Time }
@@ -37,11 +37,11 @@ func newTestMemberRouter(t *testing.T) (http.Handler, func(now time.Time, kid st
 	setKeys([]jwks_testutil.Keypair{kp})
 
 	jwtCfg := config.JWTConfig{
-		Issuer:                  "test-iss",
-		Audience:                "test-aud",
-		JWKSURL:                 jwksSrv.URL,
-		ClockSkew:               0,
-		JWKSRefreshInterval:     10 * time.Minute,
+		Issuer:                 "test-iss",
+		Audience:               "test-aud",
+		JWKSURL:                jwksSrv.URL,
+		ClockSkew:              0,
+		JWKSRefreshInterval:    10 * time.Minute,
 		JWKSMinRefreshInterval: time.Second,
 		HTTPTimeout:            2 * time.Second,
 	}
@@ -176,5 +176,3 @@ func TestMembers_UpdateMe_IdempotentReplayAndConflictOnReuse(t *testing.T) {
 		t.Fatalf("patch3 status=%d body=%s", rec3.Code, rec3.Body.String())
 	}
 }
-
-

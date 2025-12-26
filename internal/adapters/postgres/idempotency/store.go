@@ -8,8 +8,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	postgres "eastbay-overland-rally-planner/internal/adapters/postgres"
-	"eastbay-overland-rally-planner/internal/ports/out/idempotency"
+	postgres "ebo-planner-backend/internal/adapters/postgres"
+	"ebo-planner-backend/internal/ports/out/idempotency"
 )
 
 // Store is a Postgres implementation of idempotency.Store.

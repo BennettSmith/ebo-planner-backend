@@ -14,11 +14,11 @@ import (
 	"github.com/oapi-codegen/nullable"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 
-	"eastbay-overland-rally-planner/internal/adapters/httpapi/oas"
-	"eastbay-overland-rally-planner/internal/app/members"
-	"eastbay-overland-rally-planner/internal/app/trips"
-	"eastbay-overland-rally-planner/internal/domain"
-	"eastbay-overland-rally-planner/internal/ports/out/idempotency"
+	"ebo-planner-backend/internal/adapters/httpapi/oas"
+	"ebo-planner-backend/internal/app/members"
+	"ebo-planner-backend/internal/app/trips"
+	"ebo-planner-backend/internal/domain"
+	"ebo-planner-backend/internal/ports/out/idempotency"
 )
 
 // Server is the real HTTP adapter implementation. For endpoints not yet implemented,
@@ -1216,9 +1216,9 @@ func myRSVPFromDomain(m domain.MyRSVP) oas.MyRSVP {
 
 func tripRSVPSummaryFromDomain(s domain.TripRSVPSummary) oas.TripRSVPSummary {
 	out := oas.TripRSVPSummary{
-		AttendingRigs:        s.AttendingRigs,
-		AttendingMembers:     make([]oas.MemberSummary, 0, len(s.AttendingMembers)),
-		NotAttendingMembers:  make([]oas.MemberSummary, 0, len(s.NotAttendingMembers)),
+		AttendingRigs:       s.AttendingRigs,
+		AttendingMembers:    make([]oas.MemberSummary, 0, len(s.AttendingMembers)),
+		NotAttendingMembers: make([]oas.MemberSummary, 0, len(s.NotAttendingMembers)),
 	}
 	out.CapacityRigs = nullableInt(s.CapacityRigs)
 	for _, m := range s.AttendingMembers {
@@ -1437,7 +1437,7 @@ func hashUpdateTripBody(tripID string, b oas.UpdateTripRequest) (string, error) 
 		canon.Name = &n
 	}
 	raw, err := json.Marshal(struct {
-		TripId string             `json:"tripId"`
+		TripId string                `json:"tripId"`
 		Body   oas.UpdateTripRequest `json:"body"`
 	}{
 		TripId: tripID,
@@ -1452,7 +1452,7 @@ func hashUpdateTripBody(tripID string, b oas.UpdateTripRequest) (string, error) 
 
 func hashSetTripDraftVisibilityBody(tripID string, b oas.SetDraftVisibilityRequest) (string, error) {
 	raw, err := json.Marshal(struct {
-		TripId string                  `json:"tripId"`
+		TripId string                        `json:"tripId"`
 		Body   oas.SetDraftVisibilityRequest `json:"body"`
 	}{
 		TripId: tripID,
@@ -1467,7 +1467,7 @@ func hashSetTripDraftVisibilityBody(tripID string, b oas.SetDraftVisibilityReque
 
 func hashAddTripOrganizerBody(tripID string, b oas.AddOrganizerRequest) (string, error) {
 	raw, err := json.Marshal(struct {
-		TripId string               `json:"tripId"`
+		TripId string                  `json:"tripId"`
 		Body   oas.AddOrganizerRequest `json:"body"`
 	}{
 		TripId: tripID,
@@ -1510,7 +1510,7 @@ func hashCancelTripBody(tripID string) (string, error) {
 
 func hashSetMyRSVPBody(tripID string, b oas.SetMyRSVPRequest) (string, error) {
 	raw, err := json.Marshal(struct {
-		TripId string            `json:"tripId"`
+		TripId string               `json:"tripId"`
 		Body   oas.SetMyRSVPRequest `json:"body"`
 	}{
 		TripId: tripID,
@@ -1627,5 +1627,3 @@ func optionalStringSliceFromNullableTrips(n nullable.Nullable[[]string]) trips.O
 	}
 	return trips.Some(v)
 }
-
-

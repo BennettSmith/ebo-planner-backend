@@ -12,9 +12,9 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	postgres "eastbay-overland-rally-planner/internal/adapters/postgres"
-	"eastbay-overland-rally-planner/internal/domain"
-	"eastbay-overland-rally-planner/internal/ports/out/memberrepo"
+	postgres "ebo-planner-backend/internal/adapters/postgres"
+	"ebo-planner-backend/internal/domain"
+	"ebo-planner-backend/internal/ports/out/memberrepo"
 )
 
 // Repo is a Postgres implementation of memberrepo.Repository.

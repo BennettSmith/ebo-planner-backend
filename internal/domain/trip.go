@@ -42,11 +42,11 @@ type TripArtifact struct {
 }
 
 type TripSummary struct {
-	ID             TripID
-	Name           *string
-	StartDate      *time.Time // date-only semantics at the edges
-	EndDate        *time.Time // date-only semantics at the edges
-	Status         TripStatus
+	ID              TripID
+	Name            *string
+	StartDate       *time.Time // date-only semantics at the edges
+	EndDate         *time.Time // date-only semantics at the edges
+	Status          TripStatus
 	DraftVisibility *DraftVisibility
 
 	CapacityRigs  *int
@@ -54,9 +54,9 @@ type TripSummary struct {
 }
 
 type MemberSummary struct {
-	ID             MemberID
-	DisplayName    string
-	Email          string
+	ID              MemberID
+	DisplayName     string
+	Email           string
 	GroupAliasEmail *string
 }
 
@@ -102,5 +102,3 @@ type MyRSVP struct {
 	Response  RSVPResponse
 	UpdatedAt time.Time
 }
-
-

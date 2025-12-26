@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"eastbay-overland-rally-planner/internal/domain"
-	"eastbay-overland-rally-planner/internal/ports/out/idempotency"
+	"ebo-planner-backend/internal/domain"
+	"ebo-planner-backend/internal/ports/out/idempotency"
 )
 
 func TestStore_PutThenGet(t *testing.T) {

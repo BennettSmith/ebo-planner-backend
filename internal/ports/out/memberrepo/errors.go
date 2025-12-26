@@ -12,5 +12,3 @@ var (
 	// ErrAlreadyExists indicates a member already exists with the provided ID.
 	ErrAlreadyExists = errors.New("member already exists")
 )
-
-

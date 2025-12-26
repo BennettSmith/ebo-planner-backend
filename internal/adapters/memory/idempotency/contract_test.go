@@ -3,8 +3,8 @@ package idempotency
 import (
 	"testing"
 
-	"eastbay-overland-rally-planner/internal/adapters/contracttest"
-	idempotencyport "eastbay-overland-rally-planner/internal/ports/out/idempotency"
+	"ebo-planner-backend/internal/adapters/contracttest"
+	idempotencyport "ebo-planner-backend/internal/ports/out/idempotency"
 )
 
 func TestContract_IdempotencyStore(t *testing.T) {

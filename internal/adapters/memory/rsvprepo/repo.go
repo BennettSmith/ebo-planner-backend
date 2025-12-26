@@ -5,8 +5,8 @@ import (
 	"sort"
 	"sync"
 
-	"eastbay-overland-rally-planner/internal/domain"
-	"eastbay-overland-rally-planner/internal/ports/out/rsvprepo"
+	"ebo-planner-backend/internal/domain"
+	"ebo-planner-backend/internal/ports/out/rsvprepo"
 )
 
 type key struct {
