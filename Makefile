@@ -23,7 +23,7 @@ SHELL := /bin/bash
 #     ebo-planner-spec/
 #     ebo-planner-backend/
 EBO_SPEC_DIR ?= ../ebo-planner-spec
-OPENAPI_SPEC ?= $(EBO_SPEC_DIR)/openapi.yaml
+OPENAPI_SPEC ?= $(EBO_SPEC_DIR)/openapi/openapi.yaml
 
 # Keep these defaults aligned with docker-compose.yml (so "make up" works out of the box).
 POSTGRES_USER ?= eb
@@ -86,6 +86,7 @@ PSQL_FLAGS ?= -v ON_ERROR_STOP=1
 .PHONY: help
 help:
 	@echo "Targets:"
+	@echo "  help           Show this help"
 	@echo "  up             Start docker-compose stack (db + migrate + api + caddy)"
 	@echo "  down           Stop postgres container"
 	@echo "  logs           Tail postgres logs"
@@ -104,14 +105,20 @@ help:
 	@echo "  db-migrate     Apply schema migrations (golang-migrate)"
 	@echo "  db-seed        Apply dev seed (optional)"
 	@echo "  db-reset       Drop + create + migrate + seed (destructive)"
+	@echo "  migrate        Run the migrate container (same as compose service 'migrate')"
 	@echo ""
 	@echo "  image          Build the API Docker image (no compose): $(API_IMAGE)"
 	@echo "  image-run      Run the API Docker image (no compose; requires DATABASE_URL reachable)"
 	@echo ""
 	@echo "  fmt            Run gofmt on all .go files"
 	@echo "  test           Run Go unit tests (./...)"
+	@echo "  itest          Run HTTP API integration tests (memory backend)"
+	@echo "  itest-postgres Run HTTP API integration tests (postgres backend; requires db)"
+	@echo "  itest-all      Run HTTP API integration tests (all backends)"
 	@echo "  cover          Run tests with coverage (writes coverage.out; prints summary)"
 	@echo "  cover-html     Generate coverage.html from coverage.out"
+	@echo ""
+	@echo "  gen-openapi    Generate Go server stubs + types from OpenAPI spec"
 	@echo ""
 	@echo "Vars (override like: make up POSTGRES_PORT=5433):"
 	@echo "  POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_PORT SEED_FILE DATABASE_URL"
@@ -240,9 +247,11 @@ db-reset: db-drop db-create db-migrate db-seed
 .PHONY: gen-openapi
 gen-openapi:
 	@test -f "$(OPENAPI_SPEC)" || (echo "OpenAPI spec not found: $(OPENAPI_SPEC) (set EBO_SPEC_DIR=... to override)"; exit 1)
+	@echo "Generating OpenAPI code from: $(OPENAPI_SPEC)"
 	@go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.5.1 \
 		-config oapi-codegen.yaml \
 		"$(OPENAPI_SPEC)"
+	@echo "OpenAPI generation complete."
 
 # --- Go quality-of-life targets (Milestone 0) ---
 
