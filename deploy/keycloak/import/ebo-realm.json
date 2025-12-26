@@ -57,6 +57,66 @@
           "temporary": false
         }
       ]
+    },
+    {
+      "username": "tinyostrich632",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "lois.caldwell@example.com",
+      "firstName": "Lois",
+      "lastName": "Caldwell",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "tinyostrich632",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "orangedog261",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "aaron.watts@example.com",
+      "firstName": "Aaron",
+      "lastName": "Watts",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "orangedog261",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "smallgoose799",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "glen.neal@example.com",
+      "firstName": "Glen",
+      "lastName": "Neal",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "smallgoose799",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "happyostrich938",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "denise.watts@example.com",
+      "firstName": "Denise",
+      "lastName": "Watts",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "happyostrich938",
+          "temporary": false
+        }
+      ]
     }
   ]
 }
