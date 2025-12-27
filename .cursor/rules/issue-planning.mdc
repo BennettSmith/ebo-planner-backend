@@ -1,0 +1,48 @@
+# Planning lives in GitHub Issues (draft-first)
+
+## Repo identity
+You are working in **`ebo-planner-backend`**: Go API, persistence, migrations, adapters, auth, and backend runtime behavior.
+
+## Default behavior for planning requests
+When the user asks for **planning / approach / design / rollout**:
+
+- **Do not write a plan markdown file** (or any repo file) unless the user explicitly asks.
+- **Stop with a GitHub Issue *draft*** and wait for review/refinement. Expect iterative back-and-forth.
+- **Do not create a GitHub issue** unless the user explicitly asks you to create it.
+
+## Choose the right repo for the issue (triage)
+Your job is to pick the most appropriate repo for the issue and say so.
+
+- If the work is about **backend implementation** (handlers, services, DB schema/migrations, idempotency, ETags, auth, performance, observability), the issue belongs in **`ebo-planner-backend`**.
+- If it’s primarily spec work (use cases, ADRs, OpenAPI authoring), suggest **`ebo-planner-spec`**.
+- If it’s frontend/CLI work, suggest **`ebo-planner-web`** or **`ebo-planner-cli`**.
+- If ambiguous, ask **one** targeted question: “Which repo should own this issue (spec/backend/web/cli)?”
+
+## GitHub Issue draft format (required)
+Output exactly this structure:
+
+### Proposed GitHub Issue (DRAFT — do not create yet)
+**Repo**: <ebo-planner-spec | ebo-planner-backend | ebo-planner-web | ebo-planner-cli>
+**Title**: <concise, action-oriented>
+**Labels**: <optional list, omit if unknown>
+**Body**:
+- **Problem / Motivation**
+- **Goals**
+- **Non-goals**
+- **Context / Links** (link to spec/ADRs/endpoints/PRs)
+- **Proposed approach**
+- **Detailed task breakdown** (checkbox list)
+- **Acceptance criteria**
+- **Testing / validation**
+- **Rollout / migration plan**
+- **Risks & mitigations**
+- **Open questions**
+
+## When asked to create the issue
+Only when the user explicitly asks you to create it in a specific repo:
+
+- Confirm/ask for: **repo**, **title**, **labels** (optional), and whether to use the current draft verbatim.
+- Then either:
+  - Provide a `gh issue create ...` command the user can run, OR
+  - Run the `gh issue create` command yourself if the user asked you to create it now.
+
