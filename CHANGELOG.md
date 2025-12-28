@@ -15,6 +15,8 @@ Notes:
 
 ### Added
 
+- Updated keycloak config to add ebo-client to ebo realm.
+
 ### Changed
 
 ### Deprecated
