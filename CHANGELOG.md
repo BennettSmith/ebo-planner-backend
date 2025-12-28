@@ -18,6 +18,7 @@ Notes:
 - Updated keycloak config to add ebo-client to ebo realm.
 
 ### Changed
+- Added cors support to caddy #17 (AP)
 
 ### Deprecated
 
