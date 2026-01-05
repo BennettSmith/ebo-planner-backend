@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/oapi-codegen/nullable"
 
-	"github.com/BennettSmith/ebo-planner-backend/internal/adapters/httpapi/oas"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/adapters/httpapi/oas"
 )
 
 func writeOASError(w http.ResponseWriter, r *http.Request, status int, code string, message string, details map[string]any) {

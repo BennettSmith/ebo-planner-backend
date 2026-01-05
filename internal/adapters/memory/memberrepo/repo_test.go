@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BennettSmith/ebo-planner-backend/internal/domain"
-	"github.com/BennettSmith/ebo-planner-backend/internal/ports/out/memberrepo"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/domain"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/memberrepo"
 )
 
 func TestRepo_CreateAndGet(t *testing.T) {

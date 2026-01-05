@@ -1,5 +1,5 @@
 -- File: 06_seed_dev_optional.sql
--- Development / demo seed data for East Bay Overland
+-- Development / demo seed data for Overland East Bay
 -- Safe to run multiple times (uses deterministic UUIDs via INSERT ... SELECT WHERE NOT EXISTS patterns)
 -- Assumes schema has already been created.
 

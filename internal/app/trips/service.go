@@ -10,10 +10,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/BennettSmith/ebo-planner-backend/internal/domain"
-	"github.com/BennettSmith/ebo-planner-backend/internal/ports/out/memberrepo"
-	"github.com/BennettSmith/ebo-planner-backend/internal/ports/out/rsvprepo"
-	"github.com/BennettSmith/ebo-planner-backend/internal/ports/out/triprepo"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/domain"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/memberrepo"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/rsvprepo"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/triprepo"
 )
 
 type Service struct {

@@ -8,17 +8,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BennettSmith/ebo-planner-backend/internal/adapters/httpapi/oas"
-	memclock "github.com/BennettSmith/ebo-planner-backend/internal/adapters/memory/clock"
-	memidempotency "github.com/BennettSmith/ebo-planner-backend/internal/adapters/memory/idempotency"
-	memmemberrepo "github.com/BennettSmith/ebo-planner-backend/internal/adapters/memory/memberrepo"
-	memrsvprepo "github.com/BennettSmith/ebo-planner-backend/internal/adapters/memory/rsvprepo"
-	memtriprepo "github.com/BennettSmith/ebo-planner-backend/internal/adapters/memory/triprepo"
-	"github.com/BennettSmith/ebo-planner-backend/internal/app/members"
-	"github.com/BennettSmith/ebo-planner-backend/internal/app/trips"
-	"github.com/BennettSmith/ebo-planner-backend/internal/platform/auth/jwks_testutil"
-	"github.com/BennettSmith/ebo-planner-backend/internal/platform/auth/jwtverifier"
-	"github.com/BennettSmith/ebo-planner-backend/internal/platform/config"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/adapters/httpapi/oas"
+	memclock "github.com/Overland-East-Bay/trip-planner-api/internal/adapters/memory/clock"
+	memidempotency "github.com/Overland-East-Bay/trip-planner-api/internal/adapters/memory/idempotency"
+	memmemberrepo "github.com/Overland-East-Bay/trip-planner-api/internal/adapters/memory/memberrepo"
+	memrsvprepo "github.com/Overland-East-Bay/trip-planner-api/internal/adapters/memory/rsvprepo"
+	memtriprepo "github.com/Overland-East-Bay/trip-planner-api/internal/adapters/memory/triprepo"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/app/members"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/app/trips"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/platform/auth/jwks_testutil"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/platform/auth/jwtverifier"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/platform/config"
 )
 
 type fixedClockMembers struct{ t time.Time }

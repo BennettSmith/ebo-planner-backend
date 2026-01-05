@@ -1,4 +1,4 @@
-# East Bay Overland — Local Dev
+# Overland East Bay — Local Dev
 
 This repo uses:
 
@@ -75,7 +75,7 @@ You can run Keycloak locally via docker compose (recommended) or run it elsewher
 This repo includes a `keycloak` compose service (disabled by default) and a small realm import:
 - Realm: `ebo`
 - Client: `ebo-api` (direct access grants enabled; auth code flow enabled for Postman)
-- Client: `ebo-client` (OAuth 2.0 Device Authorization Grant enabled; for `ebo-planner-cli` interactive login)
+- Client: `ebo-client` (OAuth 2.0 Device Authorization Grant enabled; for `trip-planner-cli` interactive login)
 - User: `alice` / password: `alice`
 
 Start the stack with Keycloak + JWT auth:
@@ -246,7 +246,7 @@ postgres://eb:eb@localhost:5432/eastbay?sslmode=disable
 
 ## Fast dev loop (spec-first)
 
-OpenAPI is the source of truth (default: `../ebo-planner-spec/openapi.yaml`).
+OpenAPI is the source of truth (default: `../trip-planner-spec/openapi/openapi.yaml`).
 
 Regenerate server glue, format, and run tests:
 

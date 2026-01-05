@@ -1,7 +1,7 @@
 {
   "realm": "ebo",
   "enabled": true,
-  "displayName": "East Bay Overland (local)",
+  "displayName": "Overland East Bay (local)",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,

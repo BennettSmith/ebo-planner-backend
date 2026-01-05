@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# East Bay Overland — repo bootstrap (hexagonal Go layout)
+# Overland East Bay — repo bootstrap (hexagonal Go layout)
 # Safe to re-run. Creates directories and starter files if missing.
 #
 # Assumptions:
@@ -218,7 +218,7 @@ fi
 if [[ ! -f "README.md" ]]; then
   say "Creating README.md (minimal)"
   cat > "README.md" <<'EOF'
-# East Bay Overland — Trip Planning Service (Go)
+# Overland East Bay — Trip Planning Service (Go)
 
 ## Local dev (Docker)
 - Reverse proxy (Caddy): http://localhost:8081

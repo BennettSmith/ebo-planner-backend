@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/BennettSmith/ebo-planner-backend/internal/platform/config"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/platform/config"
 )
 
 var (

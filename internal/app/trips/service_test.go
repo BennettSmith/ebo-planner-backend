@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
-	memmemberrepo "github.com/BennettSmith/ebo-planner-backend/internal/adapters/memory/memberrepo"
-	memrsvprepo "github.com/BennettSmith/ebo-planner-backend/internal/adapters/memory/rsvprepo"
-	memtriprepo "github.com/BennettSmith/ebo-planner-backend/internal/adapters/memory/triprepo"
-	"github.com/BennettSmith/ebo-planner-backend/internal/app/trips"
-	"github.com/BennettSmith/ebo-planner-backend/internal/domain"
-	portmemberrepo "github.com/BennettSmith/ebo-planner-backend/internal/ports/out/memberrepo"
-	portrsvprepo "github.com/BennettSmith/ebo-planner-backend/internal/ports/out/rsvprepo"
-	porttriprepo "github.com/BennettSmith/ebo-planner-backend/internal/ports/out/triprepo"
+	memmemberrepo "github.com/Overland-East-Bay/trip-planner-api/internal/adapters/memory/memberrepo"
+	memrsvprepo "github.com/Overland-East-Bay/trip-planner-api/internal/adapters/memory/rsvprepo"
+	memtriprepo "github.com/Overland-East-Bay/trip-planner-api/internal/adapters/memory/triprepo"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/app/trips"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/domain"
+	portmemberrepo "github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/memberrepo"
+	portrsvprepo "github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/rsvprepo"
+	porttriprepo "github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/triprepo"
 )
 
 func provisionMember(t *testing.T, repo *memmemberrepo.Repo, id domain.MemberID) {

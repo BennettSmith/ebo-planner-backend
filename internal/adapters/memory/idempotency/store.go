@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/BennettSmith/ebo-planner-backend/internal/ports/out/idempotency"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/idempotency"
 )
 
 // Store is an in-memory implementation of idempotency.Store.

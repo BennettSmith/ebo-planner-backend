@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/BennettSmith/ebo-planner-backend/internal/domain"
-	"github.com/BennettSmith/ebo-planner-backend/internal/ports/out/memberrepo"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/domain"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/memberrepo"
 )
 
 // Repo is an in-memory implementation of memberrepo.Repository.

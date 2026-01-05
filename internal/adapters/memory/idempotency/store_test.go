@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BennettSmith/ebo-planner-backend/internal/domain"
-	"github.com/BennettSmith/ebo-planner-backend/internal/ports/out/idempotency"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/domain"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/idempotency"
 )
 
 func TestStore_PutThenGet(t *testing.T) {

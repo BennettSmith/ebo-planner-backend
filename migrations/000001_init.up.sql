@@ -3,7 +3,7 @@
 -- Initializes the database schema from scratch.
 --
 
--- East Bay Overland — Trip Planning DB Schema (PostgreSQL)
+-- Overland East Bay — Trip Planning DB Schema (PostgreSQL)
 --
 -- Notes:
 -- - Uses pgcrypto for gen_random_uuid().

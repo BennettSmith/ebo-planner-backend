@@ -12,9 +12,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	postgres "github.com/BennettSmith/ebo-planner-backend/internal/adapters/postgres"
-	"github.com/BennettSmith/ebo-planner-backend/internal/domain"
-	"github.com/BennettSmith/ebo-planner-backend/internal/ports/out/triprepo"
+	postgres "github.com/Overland-East-Bay/trip-planner-api/internal/adapters/postgres"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/domain"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/triprepo"
 )
 
 // Repo is a Postgres implementation of triprepo.Repository.

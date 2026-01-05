@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BennettSmith/ebo-planner-backend/internal/domain"
-	"github.com/BennettSmith/ebo-planner-backend/internal/ports/out/triprepo"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/domain"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/triprepo"
 )
 
 func TestRepo_ListPublishedAndCanceled_FiltersAndSorts(t *testing.T) {

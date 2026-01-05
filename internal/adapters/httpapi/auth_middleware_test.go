@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BennettSmith/ebo-planner-backend/internal/adapters/httpapi/oas"
-	"github.com/BennettSmith/ebo-planner-backend/internal/platform/auth/jwks_testutil"
-	"github.com/BennettSmith/ebo-planner-backend/internal/platform/auth/jwtverifier"
-	"github.com/BennettSmith/ebo-planner-backend/internal/platform/config"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/adapters/httpapi/oas"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/platform/auth/jwks_testutil"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/platform/auth/jwtverifier"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/platform/config"
 )
 
 type fixedClock struct{ t time.Time }

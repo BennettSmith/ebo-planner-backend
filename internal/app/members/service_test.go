@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	memclock "github.com/BennettSmith/ebo-planner-backend/internal/adapters/memory/clock"
-	memmemberrepo "github.com/BennettSmith/ebo-planner-backend/internal/adapters/memory/memberrepo"
-	"github.com/BennettSmith/ebo-planner-backend/internal/domain"
+	memclock "github.com/Overland-East-Bay/trip-planner-api/internal/adapters/memory/clock"
+	memmemberrepo "github.com/Overland-East-Bay/trip-planner-api/internal/adapters/memory/memberrepo"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/domain"
 )
 
 func TestService_GetMyMemberProfile_NotProvisioned(t *testing.T) {

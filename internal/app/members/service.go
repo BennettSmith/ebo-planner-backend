@@ -9,9 +9,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/BennettSmith/ebo-planner-backend/internal/domain"
-	clockport "github.com/BennettSmith/ebo-planner-backend/internal/ports/out/clock"
-	"github.com/BennettSmith/ebo-planner-backend/internal/ports/out/memberrepo"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/domain"
+	clockport "github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/clock"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/ports/out/memberrepo"
 )
 
 type Service struct {

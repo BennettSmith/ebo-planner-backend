@@ -1,4 +1,4 @@
-module github.com/BennettSmith/ebo-planner-backend
+module github.com/Overland-East-Bay/trip-planner-api
 
 go 1.23.0
 

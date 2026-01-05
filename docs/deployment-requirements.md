@@ -1,6 +1,6 @@
 # Deployment requirements (production) — Backend API
 
-This document collects requirements that must be met for a **production** deployment of the `ebo-planner-backend` service.
+This document collects requirements that must be met for a **production** deployment of the `trip-planner-api` service.
 
 ## CORS
 

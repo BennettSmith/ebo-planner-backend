@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BennettSmith/ebo-planner-backend/internal/platform/auth/jwks_testutil"
-	"github.com/BennettSmith/ebo-planner-backend/internal/platform/auth/jwtverifier"
-	"github.com/BennettSmith/ebo-planner-backend/internal/platform/config"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/platform/auth/jwks_testutil"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/platform/auth/jwtverifier"
+	"github.com/Overland-East-Bay/trip-planner-api/internal/platform/config"
 )
 
 type fakeClock struct{ now time.Time }

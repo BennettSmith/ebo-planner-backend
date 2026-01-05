@@ -1,4 +1,4 @@
-# East Bay Overland — Local Dev Helpers
+# Overland East Bay — Local Dev Helpers
 #
 # Prereqs:
 #   - Docker Desktop (or compatible)
@@ -20,9 +20,9 @@ SHELL := /bin/bash
 # --- Spec repo location (OpenAPI + use cases live there) ---
 # Default assumes the spec repo sits next to this backend repo:
 #   eastbay-overland/
-#     ebo-planner-spec/
-#     ebo-planner-backend/
-EBO_SPEC_DIR ?= ../ebo-planner-spec
+#     trip-planner-spec/
+#     trip-planner-api/
+EBO_SPEC_DIR ?= ../trip-planner-spec
 OPENAPI_SPEC ?= $(EBO_SPEC_DIR)/openapi/openapi.yaml
 
 # Keep these defaults aligned with docker-compose.yml (so "make up" works out of the box).
@@ -243,7 +243,7 @@ db-reset: db-drop db-create db-migrate db-seed
 
 # --- Go / OpenAPI helpers ---
 #
-# Generates Go server stubs + types from the OpenAPI spec (default: ../ebo-planner-spec/openapi.yaml).
+# Generates Go server stubs + types from the OpenAPI spec (default: ../trip-planner-spec/openapi/openapi.yaml).
 # - Uses oapi-codegen (Go-native generator)
 # - Targets net/http + chi (but keeps generated code isolated in a package you can adapt from)
 #
@@ -333,7 +333,7 @@ image-run:
 		$(API_IMAGE)
 
 
-# --- Changelog / releasing helpers (modeled after ebo-planner-spec) ---
+# --- Changelog / releasing helpers (modeled after trip-planner-spec) ---
 .PHONY: changelog-verify changelog-release release-help
 
 changelog-verify:
